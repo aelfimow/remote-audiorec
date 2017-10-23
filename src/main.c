@@ -1,8 +1,14 @@
+#include <winsock2.h>
 #include <windows.h>
 #include <process.h>
+#include <ws2tcpip.h>
+#include <stdlib.h>
 
 #define ID_EDIT         1
 #define IDM_APP_EXIT    40000
+
+#define MY_PORT         "50000"
+#define RX_BUFFER_SIZE  1024
 
 struct tThreadParams
 {
@@ -204,6 +210,123 @@ static DWORD WINAPI SockThread(LPVOID pvoid)
     SetEvent(params.event);
 
     EditPrintf(params.hwndEdit, "Thread started");
+
+    while (1)
+    {
+        EditPrintf(params.hwndEdit, "Waiting for commands");
+
+        WSADATA wsaData;
+
+        SOCKET ListenSocket = INVALID_SOCKET;
+        SOCKET ClientSocket = INVALID_SOCKET;
+
+        struct addrinfo *result = NULL;
+        struct addrinfo hints;
+
+        char recvbuf[RX_BUFFER_SIZE];
+
+        int iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
+
+        if (iResult != 0)
+        {
+            EditPrintf(params.hwndEdit, "WSAStartup failed with error: %d\n", iResult);
+            break;
+        }
+
+        ZeroMemory(&hints, sizeof(hints));
+        hints.ai_family = AF_INET;
+        hints.ai_socktype = SOCK_STREAM;
+        hints.ai_protocol = IPPROTO_TCP;
+        hints.ai_flags = AI_PASSIVE;
+
+        iResult = getaddrinfo(NULL, MY_PORT, &hints, &result);
+
+        if (iResult != 0)
+        {
+            EditPrintf(params.hwndEdit, "getaddrinfo failed with error: %d\n", iResult);
+            WSACleanup();
+            break;
+        }
+
+        ListenSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+        if (ListenSocket == INVALID_SOCKET)
+        {
+            EditPrintf(params.hwndEdit, "socket failed with error: %ld\n", WSAGetLastError());
+            freeaddrinfo(result);
+            WSACleanup();
+            break;
+        }
+
+        iResult = bind(ListenSocket, result->ai_addr, (int)result->ai_addrlen);
+
+        if (iResult == SOCKET_ERROR)
+        {
+            EditPrintf(params.hwndEdit, "bind failed with error: %d\n", WSAGetLastError());
+            freeaddrinfo(result);
+            closesocket(ListenSocket);
+            WSACleanup();
+            break;
+        }
+
+        freeaddrinfo(result);
+
+        iResult = listen(ListenSocket, SOMAXCONN);
+
+        if (iResult == SOCKET_ERROR)
+        {
+            EditPrintf(params.hwndEdit, "listen failed with error: %d\n", WSAGetLastError());
+            closesocket(ListenSocket);
+            WSACleanup();
+            break;
+        }
+
+        ClientSocket = accept(ListenSocket, NULL, NULL);
+
+        if (ClientSocket == INVALID_SOCKET)
+        {
+            EditPrintf(params.hwndEdit, "accept failed with error: %d\n", WSAGetLastError());
+            closesocket(ListenSocket);
+            WSACleanup();
+            break;
+        }
+
+        closesocket(ListenSocket);
+
+        do
+        {
+            ZeroMemory(recvbuf, sizeof(recvbuf));
+            iResult = recv(ClientSocket, recvbuf, sizeof(recvbuf) - 1, 0);
+
+            if (iResult > 0)
+            {
+                EditPrintf(params.hwndEdit, "Bytes received %d, message: %s\n", iResult, recvbuf);
+            }
+
+            if (iResult < 0)
+            {
+                EditPrintf(params.hwndEdit, "recv failed with error: %d\n", WSAGetLastError());
+                closesocket(ClientSocket);
+                WSACleanup();
+                break;
+            }
+
+        } while (iResult > 0);
+
+        iResult = shutdown(ClientSocket, SD_SEND);
+
+        if (iResult == SOCKET_ERROR)
+        {
+            EditPrintf(params.hwndEdit, "shutdown failed with error: %d\n", WSAGetLastError());
+            closesocket(ClientSocket);
+            WSACleanup();
+            break;
+        }
+
+        closesocket(ClientSocket);
+        WSACleanup();
+    }
+
+    EditPrintf(params.hwndEdit, "Thread exit");
 
     ExitThread(0);
 

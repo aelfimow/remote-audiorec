@@ -111,6 +111,9 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
     static HANDLE hSockThread = NULL;
     static HWND hwndEdit = NULL;
     struct tThreadParams ThreadParams;
+    static HANDLE hFileOut = INVALID_HANDLE_VALUE;
+    static TCHAR szFileName[512];
+    static DWORD fileCount = 0;
 
     static PBYTE pBuffer1 = NULL;
     static PBYTE pBuffer2 = NULL;
@@ -119,6 +122,8 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
     static PWAVEHDR pWaveHdr2 = NULL;
     static HWAVEIN hWaveIn = NULL;
     static BOOL bStopRecord = FALSE;
+
+    DWORD WrittenResult = 0u;
 
     switch (message)
     {
@@ -215,6 +220,30 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                     return 0;
                 }
 
+                if (hFileOut != INVALID_HANDLE_VALUE)
+                {
+                    CloseHandle(hFileOut);
+                    hFileOut = INVALID_HANDLE_VALUE;
+                }
+
+                wsprintf(szFileName, "audio-%d.raw", fileCount);
+
+                hFileOut = CreateFile(
+                        szFileName,
+                        GENERIC_WRITE,
+                        FILE_SHARE_WRITE,
+                        NULL,
+                        CREATE_ALWAYS,
+                        FILE_ATTRIBUTE_NORMAL,
+                        NULL);
+
+                ++fileCount;
+
+                if (hFileOut == INVALID_HANDLE_VALUE)
+                {
+                    EditPrintf(hwndEdit, "Error: File not created: %s", szFileName);
+                }
+
                 pWaveHdr1->lpData = (void *)pBuffer1;
                 pWaveHdr1->dwBufferLength = INP_BUFFER_SIZE;
                 pWaveHdr1->dwBytesRecorded = 0;
@@ -265,8 +294,15 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                     return 0;
                 }
 
-                /* Copy pWaveHdr->lpData of pWaveHdr->dwBytesRecorded bytes */
                 EditPrintf(hwndEdit, "Audio samples: %d", pWaveHdr->dwBytesRecorded);
+
+                if (0 != pWaveHdr->dwBytesRecorded)
+                {
+                    if (hFileOut != INVALID_HANDLE_VALUE)
+                    {
+                        WriteFile(hFileOut, pWaveHdr->lpData, pWaveHdr->dwBytesRecorded, &WrittenResult, NULL);
+                    }
+                }
 
                 if (FALSE != bStopRecord)
                 {
@@ -285,6 +321,11 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                 waveInUnprepareHeader(hWaveIn, pWaveHdr2, sizeof(WAVEHDR));
                 CleanupPointers(pBuffer1, pBuffer2, pWaveHdr1, pWaveHdr2);
                 EditPrintf(hwndEdit, "Audio input closed");
+                if (hFileOut != INVALID_HANDLE_VALUE)
+                {
+                    CloseHandle(hFileOut);
+                    hFileOut = INVALID_HANDLE_VALUE;
+                }
                 return 0;
             }
 
@@ -316,6 +357,11 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                 bStopRecord = TRUE;
                 waveInReset(hWaveIn);
                 CleanupPointers(pBuffer1, pBuffer2, pWaveHdr1, pWaveHdr2);
+                if (hFileOut != INVALID_HANDLE_VALUE)
+                {
+                    CloseHandle(hFileOut);
+                    hFileOut = INVALID_HANDLE_VALUE;
+                }
                 PostQuitMessage(0);
                 return 0;
             }

@@ -10,6 +10,11 @@
 #define MY_PORT         "50000"
 #define RX_BUFFER_SIZE  1024
 
+#define WM_USER_START   (WM_USER + 1u)
+#define WM_USER_STOP    (WM_USER + 2u)
+
+#define INP_BUFFER_SIZE 16384
+
 struct tThreadParams
 {
     HANDLE event;
@@ -22,6 +27,7 @@ static HMENU AppCustomMenu(void);
 
 static DWORD WINAPI SockThread(LPVOID pvoid);
 static void EditPrintf(HWND hwndEdit, TCHAR *szFormat, ...);
+static void CleanupPointers(void *p1, void *p2, void *p3, void *p4);
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine, int iCmdShow)
 {
@@ -106,6 +112,14 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
     static HWND hwndEdit = NULL;
     struct tThreadParams ThreadParams;
 
+    static PBYTE pBuffer1 = NULL;
+    static PBYTE pBuffer2 = NULL;
+    static WAVEFORMATEX waveform;
+    static PWAVEHDR pWaveHdr1 = NULL;
+    static PWAVEHDR pWaveHdr2 = NULL;
+    static HWAVEIN hWaveIn = NULL;
+    static BOOL bStopRecord = FALSE;
+
     switch (message)
     {
         case WM_CREATE:
@@ -162,6 +176,118 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                 return 0;
             }
 
+        case WM_USER_START:
+            {
+                EditPrintf(hwndEdit, "Command: Start");
+
+                bStopRecord = FALSE;
+
+                pBuffer1 = malloc(INP_BUFFER_SIZE);
+                pBuffer2 = malloc(INP_BUFFER_SIZE);
+                pWaveHdr1 = malloc(sizeof(WAVEHDR));
+                pWaveHdr2 = malloc(sizeof(WAVEHDR));
+
+                if ((NULL == pBuffer1) || (NULL == pBuffer2) || (NULL == pWaveHdr1) || (NULL == pWaveHdr2))
+                {
+                    CleanupPointers(pBuffer1, pBuffer2, pWaveHdr1, pWaveHdr2);
+                    EditPrintf(hwndEdit, "Error: Failed to malloc buffers");
+                    return 0;
+                }
+
+                waveform.wFormatTag = WAVE_FORMAT_PCM;
+                waveform.nChannels = 1;
+                waveform.nSamplesPerSec = 11025;
+                waveform.nAvgBytesPerSec = 11025;
+                waveform.nBlockAlign = 1;
+                waveform.wBitsPerSample = 8;
+                waveform.cbSize = 0;
+
+                if (MMSYSERR_NOERROR != waveInOpen(
+                            &hWaveIn,
+                            WAVE_MAPPER,
+                            &waveform,
+                            (DWORD_PTR)hwnd,
+                            0,
+                            CALLBACK_WINDOW))
+                {
+                    CleanupPointers(pBuffer1, pBuffer2, pWaveHdr1, pWaveHdr2);
+                    EditPrintf(hwndEdit, "Error: waveInOpen failed");
+                    return 0;
+                }
+
+                pWaveHdr1->lpData = (void *)pBuffer1;
+                pWaveHdr1->dwBufferLength = INP_BUFFER_SIZE;
+                pWaveHdr1->dwBytesRecorded = 0;
+                pWaveHdr1->dwUser = 0;
+                pWaveHdr1->dwFlags = 0;
+                pWaveHdr1->dwLoops = 1;
+                pWaveHdr1->lpNext = NULL;
+                pWaveHdr1->reserved = 0;
+                waveInPrepareHeader(hWaveIn, pWaveHdr1, sizeof(WAVEHDR));
+
+                pWaveHdr2->lpData = (void *)pBuffer2;
+                pWaveHdr2->dwBufferLength = INP_BUFFER_SIZE;
+                pWaveHdr2->dwBytesRecorded = 0;
+                pWaveHdr2->dwUser = 0;
+                pWaveHdr2->dwFlags = 0;
+                pWaveHdr2->dwLoops = 1;
+                pWaveHdr2->lpNext = NULL;
+                pWaveHdr2->reserved = 0;
+                waveInPrepareHeader(hWaveIn, pWaveHdr2, sizeof(WAVEHDR));
+
+                return 0;
+            }
+
+        case WM_USER_STOP:
+            {
+                EditPrintf(hwndEdit, "Command: Stop");
+                bStopRecord = TRUE;
+                waveInReset(hWaveIn);
+                return 0;
+            }
+
+        case MM_WIM_OPEN:
+            {
+                waveInAddBuffer(hWaveIn, pWaveHdr1, sizeof(WAVEHDR));
+                waveInAddBuffer(hWaveIn, pWaveHdr2, sizeof(WAVEHDR));
+                waveInStart(hWaveIn);
+                EditPrintf(hwndEdit, "Audio input opened");
+                return 0;
+            }
+
+        case MM_WIM_DATA:
+            {
+                PWAVEHDR pWaveHdr = (PWAVEHDR)lParam;
+
+                if (NULL == pWaveHdr)
+                {
+                    EditPrintf(hwndEdit, "Error: pWaveHdr is invalid");
+                    return 0;
+                }
+
+                /* Copy pWaveHdr->lpData of pWaveHdr->dwBytesRecorded bytes */
+                EditPrintf(hwndEdit, "Audio samples: %d", pWaveHdr->dwBytesRecorded);
+
+                if (FALSE != bStopRecord)
+                {
+                    waveInClose(hWaveIn);
+                    return 0;
+                }
+
+                waveInAddBuffer(hWaveIn, pWaveHdr, sizeof(WAVEHDR));
+
+                return 0;
+            }
+
+        case MM_WIM_CLOSE:
+            {
+                waveInUnprepareHeader(hWaveIn, pWaveHdr1, sizeof(WAVEHDR));
+                waveInUnprepareHeader(hWaveIn, pWaveHdr2, sizeof(WAVEHDR));
+                CleanupPointers(pBuffer1, pBuffer2, pWaveHdr1, pWaveHdr2);
+                EditPrintf(hwndEdit, "Audio input closed");
+                return 0;
+            }
+
         case WM_COMMAND:
             {
                 /* check for errors from edit field */
@@ -176,6 +302,9 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 
                 if (IDM_APP_EXIT == LOWORD(wParam))
                 {
+                    EditPrintf(hwndEdit, "Menu command: Exit");
+                    bStopRecord = TRUE;
+                    waveInReset(hWaveIn);
                     PostMessage(hwnd, WM_CLOSE, 0, 0);
                 }
 
@@ -184,6 +313,9 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 
         case WM_DESTROY:
             {
+                bStopRecord = TRUE;
+                waveInReset(hWaveIn);
+                CleanupPointers(pBuffer1, pBuffer2, pWaveHdr1, pWaveHdr2);
                 PostQuitMessage(0);
                 return 0;
             }
@@ -300,6 +432,16 @@ static DWORD WINAPI SockThread(LPVOID pvoid)
             if (iResult > 0)
             {
                 EditPrintf(params.hwndEdit, "Bytes received %d, message: %s\n", iResult, recvbuf);
+
+                if (0 == strcmp(recvbuf, "start"))
+                {
+                    (void)PostMessage(params.hwnd, WM_USER_START, 0, 0);
+                }
+
+                if (0 == strcmp(recvbuf, "stop"))
+                {
+                    (void)PostMessage(params.hwnd, WM_USER_STOP, 0, 0);
+                }
             }
 
             if (iResult < 0)
@@ -357,3 +499,22 @@ static void EditPrintf(HWND hwndEdit, TCHAR *szFormat, ...)
     }
 }
 
+static void CleanupPointers(void *p1, void *p2, void *p3, void *p4)
+{
+    if (NULL != p1)
+    {
+        free(p1);
+    }
+    if (NULL != p2)
+    {
+        free(p2);
+    }
+    if (NULL != p3)
+    {
+        free(p3);
+    }
+    if (NULL != p4)
+    {
+        free(p4);
+    }
+}

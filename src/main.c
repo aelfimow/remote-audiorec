@@ -13,7 +13,7 @@
 #define WM_USER_START   (WM_USER + 1u)
 #define WM_USER_STOP    (WM_USER + 2u)
 
-#define INP_BUFFER_SIZE 16384
+#define INP_BUFFER_SIZE (3 * 192000)
 
 struct tThreadParams
 {
@@ -196,10 +196,10 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 
                 waveform.wFormatTag = WAVE_FORMAT_PCM;
                 waveform.nChannels = 1;
-                waveform.nSamplesPerSec = 11025;
-                waveform.nAvgBytesPerSec = 11025;
-                waveform.nBlockAlign = 1;
-                waveform.wBitsPerSample = 8;
+                waveform.nSamplesPerSec = 192000;
+                waveform.nAvgBytesPerSec = (3 * 192000);
+                waveform.nBlockAlign = 3;
+                waveform.wBitsPerSample = 24;
                 waveform.cbSize = 0;
 
                 if (MMSYSERR_NOERROR != waveInOpen(

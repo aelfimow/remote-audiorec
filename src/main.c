@@ -8,6 +8,7 @@ struct tThreadParams
 {
     HANDLE event;
     HWND hwnd;
+    HWND hwndEdit;
 };
 
 static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
@@ -97,23 +98,12 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
     static DWORD SockThreadID = 0;
     static HANDLE hSockThread = NULL;
     static HWND hwndEdit = NULL;
-    struct tThreadParams ThreadParams = { 0, 0 };
+    struct tThreadParams ThreadParams;
 
     switch (message)
     {
         case WM_CREATE:
             {
-                ThreadParams.hwnd = hwnd;
-                ThreadParams.event = CreateEvent(NULL, FALSE, FALSE, NULL);
-
-                hSockThread = CreateThread(NULL, 0, &SockThread, (LPVOID)&ThreadParams, 0, &SockThreadID);
-
-                if (NULL != hSockThread)
-                {
-                    /* thread created, wait for thread creating message queue */
-                    WaitForSingleObject(ThreadParams.event, INFINITE);
-                }
-
                 hwndEdit = CreateWindow(
                         TEXT("edit"),
                         NULL,
@@ -131,6 +121,18 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                 if (NULL == hwndEdit)
                 {
                     (void)MessageBox(NULL, TEXT("Error: hwndEdit == NULL."), TEXT("WndProc"), MB_ICONERROR);
+                }
+
+                ThreadParams.hwnd = hwnd;
+                ThreadParams.hwndEdit = hwndEdit;
+                ThreadParams.event = CreateEvent(NULL, FALSE, FALSE, NULL);
+
+                hSockThread = CreateThread(NULL, 0, &SockThread, (LPVOID)&ThreadParams, 0, &SockThreadID);
+
+                if (NULL != hSockThread)
+                {
+                    /* thread created, wait for thread creating message queue */
+                    WaitForSingleObject(ThreadParams.event, INFINITE);
                 }
 
                 return 0;
@@ -192,7 +194,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 
 static DWORD WINAPI SockThread(LPVOID pvoid)
 {
-    struct tThreadParams params = { 0, 0 };
+    struct tThreadParams params;
     MSG msg;
 
     memcpy(&params, pvoid, sizeof(struct tThreadParams));
@@ -200,6 +202,8 @@ static DWORD WINAPI SockThread(LPVOID pvoid)
     PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
 
     SetEvent(params.event);
+
+    EditPrintf(params.hwndEdit, "Thread started");
 
     ExitThread(0);
 

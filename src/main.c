@@ -305,6 +305,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                     if (hFileOut != INVALID_HANDLE_VALUE)
                     {
                         WriteFile(hFileOut, pWaveHdr->lpData, pWaveHdr->dwBytesRecorded, &WrittenResult, NULL);
+                        (void)FlushFileBuffers(hFileOut);
                     }
                 }
 

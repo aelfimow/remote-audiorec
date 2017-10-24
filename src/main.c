@@ -6,6 +6,8 @@
 
 #define ID_EDIT         1
 #define IDM_APP_EXIT    40000
+#define IDM_APP_START   40001
+#define IDM_APP_STOP    40002
 
 #define MY_PORT         "50000"
 #define RX_BUFFER_SIZE  1024
@@ -97,6 +99,8 @@ static HMENU AppCustomMenu(void)
     HMENU hMenu = CreateMenu();
     HMENU hMenuPopup = CreateMenu();
 
+    (void)AppendMenu(hMenuPopup, MF_STRING, IDM_APP_START, TEXT("Start"));
+    (void)AppendMenu(hMenuPopup, MF_STRING, IDM_APP_STOP, TEXT("Stop"));
     (void)AppendMenu(hMenuPopup, MF_SEPARATOR, 0, NULL);
     (void)AppendMenu(hMenuPopup, MF_STRING, IDM_APP_EXIT, TEXT("&Exit"));
 
@@ -339,6 +343,18 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                         /* edit window has no RAM and reports error */
                         /* do nothing here */
                     }
+                }
+
+                if (IDM_APP_START == LOWORD(wParam))
+                {
+                    EditPrintf(hwndEdit, "Menu command: Start");
+                    PostMessage(hwnd, WM_USER_START, 0, 0);
+                }
+
+                if (IDM_APP_STOP == LOWORD(wParam))
+                {
+                    EditPrintf(hwndEdit, "Menu command: Stop");
+                    PostMessage(hwnd, WM_USER_STOP, 0, 0);
                 }
 
                 if (IDM_APP_EXIT == LOWORD(wParam))

@@ -127,6 +127,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
     static PWAVEHDR pWaveHdr2 = NULL;
     static HWAVEIN hWaveIn = NULL;
     static BOOL bStopRecord = FALSE;
+    static DWORD dwAudioDataCount = 0;
 
     DWORD WrittenResult = 0u;
 
@@ -191,6 +192,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                 EditPrintf(hwndEdit, "Command: Start");
 
                 bStopRecord = FALSE;
+                dwAudioDataCount = 0;
 
                 pBuffer1 = malloc(INP_BUFFER_SIZE);
                 pBuffer2 = malloc(INP_BUFFER_SIZE);
@@ -295,7 +297,8 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                     return 0;
                 }
 
-                EditPrintf(hwndEdit, "Audio samples: %d", pWaveHdr->dwBytesRecorded);
+                ++dwAudioDataCount;
+                EditPrintf(hwndEdit, "%d: Audio samples: %d", dwAudioDataCount, pWaveHdr->dwBytesRecorded);
 
                 if (0 != pWaveHdr->dwBytesRecorded)
                 {

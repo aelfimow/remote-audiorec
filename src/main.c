@@ -30,6 +30,7 @@ static HMENU AppCustomMenu(void);
 static DWORD WINAPI SockThread(LPVOID pvoid);
 static void EditPrintf(HWND hwndEdit, TCHAR *szFormat, ...);
 static void CleanupPointers(void *p1, void *p2, void *p3, void *p4);
+static void CloseFileHandle(HANDLE *pHandle);
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine, int iCmdShow)
 {
@@ -224,11 +225,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                     return 0;
                 }
 
-                if (hFileOut != INVALID_HANDLE_VALUE)
-                {
-                    CloseHandle(hFileOut);
-                    hFileOut = INVALID_HANDLE_VALUE;
-                }
+                CloseFileHandle(&hFileOut);
 
                 wsprintf(szFileName, "audio-%d.raw", fileCount);
 
@@ -325,11 +322,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                 waveInUnprepareHeader(hWaveIn, pWaveHdr2, sizeof(WAVEHDR));
                 CleanupPointers(pBuffer1, pBuffer2, pWaveHdr1, pWaveHdr2);
                 EditPrintf(hwndEdit, "Audio input closed");
-                if (hFileOut != INVALID_HANDLE_VALUE)
-                {
-                    CloseHandle(hFileOut);
-                    hFileOut = INVALID_HANDLE_VALUE;
-                }
+                CloseFileHandle(&hFileOut);
                 return 0;
             }
 
@@ -373,11 +366,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                 bStopRecord = TRUE;
                 waveInReset(hWaveIn);
                 CleanupPointers(pBuffer1, pBuffer2, pWaveHdr1, pWaveHdr2);
-                if (hFileOut != INVALID_HANDLE_VALUE)
-                {
-                    CloseHandle(hFileOut);
-                    hFileOut = INVALID_HANDLE_VALUE;
-                }
+                CloseFileHandle(&hFileOut);
                 PostQuitMessage(0);
                 return 0;
             }
@@ -578,5 +567,17 @@ static void CleanupPointers(void *p1, void *p2, void *p3, void *p4)
     if (NULL != p4)
     {
         free(p4);
+    }
+}
+
+static void CloseFileHandle(HANDLE *pHandle)
+{
+    if (pHandle != NULL)
+    {
+        if (*pHandle != INVALID_HANDLE_VALUE)
+        {
+            CloseHandle(*pHandle);
+            *pHandle = INVALID_HANDLE_VALUE;
+        }
     }
 }

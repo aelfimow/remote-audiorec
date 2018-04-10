@@ -7,6 +7,7 @@ CXXFLAGS += -pedantic
 CXXFLAGS += -Weffc++
 CXXFLAGS += -std=c++17
 CXXFLAGS += -O2
+CXXFLAGS += -m64
 
 LIBS  = -lWs2_32
 LIBS += -lwinmm

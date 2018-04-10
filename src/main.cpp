@@ -86,10 +86,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
         return 0;
     }
 
-    while (0 != GetMessage(&msg, NULL, 0, 0))
+    auto msgres = GetMessage(&msg, NULL, 0, 0);
+
+    while ((msgres != 0) && (msgres != -1))
     {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
+
+        msgres = GetMessage(&msg, NULL, 0, 0);
     }
 
     return msg.wParam;

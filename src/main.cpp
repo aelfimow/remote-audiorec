@@ -3,6 +3,7 @@
 #include <process.h>
 #include <ws2tcpip.h>
 #include <stdlib.h>
+#include <vector>
 
 #define ID_EDIT         1
 #define IDM_APP_EXIT    40000
@@ -15,7 +16,6 @@
 #define WM_USER_START   (WM_USER + 1u)
 #define WM_USER_STOP    (WM_USER + 2u)
 
-#define INP_BUFFER_SIZE (3 * 192000)
 
 struct tThreadParams
 {
@@ -24,12 +24,18 @@ struct tThreadParams
     HWND hwndEdit;
 };
 
+#define INP_BUFFER_SIZE (3 * 192000)
+
+static std::vector<BYTE> buffer1(INP_BUFFER_SIZE);
+static std::vector<BYTE> buffer2(INP_BUFFER_SIZE);
+static WAVEHDR WaveHdr1;
+static WAVEHDR WaveHdr2;
+
 static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 static HMENU AppCustomMenu(void);
 
 static DWORD WINAPI SockThread(LPVOID pvoid);
 static void EditPrintf(HWND hwndEdit, const TCHAR *szFormat, ...);
-static void CleanupPointers(void *p1, void *p2, void *p3, void *p4);
 static void CloseFileHandle(HANDLE *pHandle);
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine, int iCmdShow)
@@ -124,21 +130,14 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
     static DWORD SockThreadID = 0;
     static HANDLE hSockThread = NULL;
     static HWND hwndEdit = NULL;
-    struct tThreadParams ThreadParams;
     static HANDLE hFileOut = INVALID_HANDLE_VALUE;
     static TCHAR szFileName[512];
     static DWORD fileCount = 0;
 
-    static PBYTE pBuffer1 = NULL;
-    static PBYTE pBuffer2 = NULL;
     static WAVEFORMATEX waveform;
-    static PWAVEHDR pWaveHdr1 = NULL;
-    static PWAVEHDR pWaveHdr2 = NULL;
     static HWAVEIN hWaveIn = NULL;
     static BOOL bStopRecord = FALSE;
     static DWORD dwAudioDataCount = 0;
-
-    DWORD WrittenResult = 0u;
 
     switch (message)
     {
@@ -163,6 +162,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                     (void)MessageBox(NULL, TEXT("Error: hwndEdit == NULL."), TEXT("WndProc"), MB_ICONERROR);
                 }
 
+                struct tThreadParams ThreadParams;
                 ThreadParams.hwnd = hwnd;
                 ThreadParams.hwndEdit = hwndEdit;
                 ThreadParams.event = CreateEvent(NULL, FALSE, FALSE, NULL);
@@ -203,18 +203,6 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                 bStopRecord = FALSE;
                 dwAudioDataCount = 0;
 
-                pBuffer1 = reinterpret_cast<PBYTE>(malloc(INP_BUFFER_SIZE));
-                pBuffer2 = reinterpret_cast<PBYTE>(malloc(INP_BUFFER_SIZE));
-                pWaveHdr1 = reinterpret_cast<PWAVEHDR>(malloc(sizeof(WAVEHDR)));
-                pWaveHdr2 = reinterpret_cast<PWAVEHDR>(malloc(sizeof(WAVEHDR)));
-
-                if ((NULL == pBuffer1) || (NULL == pBuffer2) || (NULL == pWaveHdr1) || (NULL == pWaveHdr2))
-                {
-                    CleanupPointers(pBuffer1, pBuffer2, pWaveHdr1, pWaveHdr2);
-                    EditPrintf(hwndEdit, "Error: Failed to malloc buffers");
-                    return 0;
-                }
-
                 waveform.wFormatTag = WAVE_FORMAT_PCM;
                 waveform.nChannels = 1;
                 waveform.nSamplesPerSec = 192000;
@@ -231,7 +219,6 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                             0,
                             CALLBACK_WINDOW))
                 {
-                    CleanupPointers(pBuffer1, pBuffer2, pWaveHdr1, pWaveHdr2);
                     EditPrintf(hwndEdit, "Error: waveInOpen failed");
                     return 0;
                 }
@@ -256,25 +243,25 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                     EditPrintf(hwndEdit, "Error: File not created: %s", szFileName);
                 }
 
-                pWaveHdr1->lpData = (LPSTR)pBuffer1;
-                pWaveHdr1->dwBufferLength = INP_BUFFER_SIZE;
-                pWaveHdr1->dwBytesRecorded = 0;
-                pWaveHdr1->dwUser = 0;
-                pWaveHdr1->dwFlags = 0;
-                pWaveHdr1->dwLoops = 1;
-                pWaveHdr1->lpNext = NULL;
-                pWaveHdr1->reserved = 0;
-                waveInPrepareHeader(hWaveIn, pWaveHdr1, sizeof(WAVEHDR));
+                WaveHdr1.lpData = (LPSTR)buffer1.data();
+                WaveHdr1.dwBufferLength = buffer1.size();
+                WaveHdr1.dwBytesRecorded = 0;
+                WaveHdr1.dwUser = 0;
+                WaveHdr1.dwFlags = 0;
+                WaveHdr1.dwLoops = 1;
+                WaveHdr1.lpNext = NULL;
+                WaveHdr1.reserved = 0;
+                waveInPrepareHeader(hWaveIn, &WaveHdr1, sizeof(WAVEHDR));
 
-                pWaveHdr2->lpData = (LPSTR)pBuffer2;
-                pWaveHdr2->dwBufferLength = INP_BUFFER_SIZE;
-                pWaveHdr2->dwBytesRecorded = 0;
-                pWaveHdr2->dwUser = 0;
-                pWaveHdr2->dwFlags = 0;
-                pWaveHdr2->dwLoops = 1;
-                pWaveHdr2->lpNext = NULL;
-                pWaveHdr2->reserved = 0;
-                waveInPrepareHeader(hWaveIn, pWaveHdr2, sizeof(WAVEHDR));
+                WaveHdr2.lpData = (LPSTR)buffer2.data();
+                WaveHdr2.dwBufferLength = buffer2.size();
+                WaveHdr2.dwBytesRecorded = 0;
+                WaveHdr2.dwUser = 0;
+                WaveHdr2.dwFlags = 0;
+                WaveHdr2.dwLoops = 1;
+                WaveHdr2.lpNext = NULL;
+                WaveHdr2.reserved = 0;
+                waveInPrepareHeader(hWaveIn, &WaveHdr2, sizeof(WAVEHDR));
 
                 return 0;
             }
@@ -289,8 +276,8 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 
         case MM_WIM_OPEN:
             {
-                waveInAddBuffer(hWaveIn, pWaveHdr1, sizeof(WAVEHDR));
-                waveInAddBuffer(hWaveIn, pWaveHdr2, sizeof(WAVEHDR));
+                waveInAddBuffer(hWaveIn, &WaveHdr1, sizeof(WAVEHDR));
+                waveInAddBuffer(hWaveIn, &WaveHdr2, sizeof(WAVEHDR));
                 waveInStart(hWaveIn);
                 EditPrintf(hwndEdit, "Audio input opened");
                 return 0;
@@ -313,6 +300,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                 {
                     if (hFileOut != INVALID_HANDLE_VALUE)
                     {
+                        DWORD WrittenResult = 0u;
                         WriteFile(hFileOut, pWaveHdr->lpData, pWaveHdr->dwBytesRecorded, &WrittenResult, NULL);
                         (void)FlushFileBuffers(hFileOut);
                     }
@@ -331,9 +319,8 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 
         case MM_WIM_CLOSE:
             {
-                waveInUnprepareHeader(hWaveIn, pWaveHdr1, sizeof(WAVEHDR));
-                waveInUnprepareHeader(hWaveIn, pWaveHdr2, sizeof(WAVEHDR));
-                CleanupPointers(pBuffer1, pBuffer2, pWaveHdr1, pWaveHdr2);
+                waveInUnprepareHeader(hWaveIn, &WaveHdr1, sizeof(WAVEHDR));
+                waveInUnprepareHeader(hWaveIn, &WaveHdr2, sizeof(WAVEHDR));
                 EditPrintf(hwndEdit, "Audio input closed");
                 CloseFileHandle(&hFileOut);
                 return 0;
@@ -378,7 +365,6 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
             {
                 bStopRecord = TRUE;
                 waveInReset(hWaveIn);
-                CleanupPointers(pBuffer1, pBuffer2, pWaveHdr1, pWaveHdr2);
                 CloseFileHandle(&hFileOut);
                 PostQuitMessage(0);
                 return 0;
@@ -560,26 +546,6 @@ static void EditPrintf(HWND hwndEdit, const TCHAR *szFormat, ...)
         SendMessage(hwndEdit, EM_SETSEL, (WPARAM)-1, (WPARAM)-1);
         SendMessage(hwndEdit, EM_REPLACESEL, FALSE, (LPARAM)&szEndLine[0]);
         SendMessage(hwndEdit, EM_SCROLLCARET, 0, 0);
-    }
-}
-
-static void CleanupPointers(void *p1, void *p2, void *p3, void *p4)
-{
-    if (NULL != p1)
-    {
-        free(p1);
-    }
-    if (NULL != p2)
-    {
-        free(p2);
-    }
-    if (NULL != p3)
-    {
-        free(p3);
-    }
-    if (NULL != p4)
-    {
-        free(p4);
     }
 }
 

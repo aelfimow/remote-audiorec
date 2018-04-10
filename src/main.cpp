@@ -162,6 +162,9 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                     (void)MessageBox(NULL, TEXT("Error: hwndEdit == NULL."), TEXT("WndProc"), MB_ICONERROR);
                 }
 
+                // Set limit of text to max.
+                SendMessage(hwndEdit, EM_LIMITTEXT, 0, 0L);
+
                 struct tThreadParams ThreadParams;
                 ThreadParams.hwnd = hwnd;
                 ThreadParams.hwndEdit = hwndEdit;

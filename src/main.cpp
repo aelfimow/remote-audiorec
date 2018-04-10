@@ -28,7 +28,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 static HMENU AppCustomMenu(void);
 
 static DWORD WINAPI SockThread(LPVOID pvoid);
-static void EditPrintf(HWND hwndEdit, TCHAR *szFormat, ...);
+static void EditPrintf(HWND hwndEdit, const TCHAR *szFormat, ...);
 static void CleanupPointers(void *p1, void *p2, void *p3, void *p4);
 static void CloseFileHandle(HANDLE *pHandle);
 
@@ -194,10 +194,10 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                 bStopRecord = FALSE;
                 dwAudioDataCount = 0;
 
-                pBuffer1 = malloc(INP_BUFFER_SIZE);
-                pBuffer2 = malloc(INP_BUFFER_SIZE);
-                pWaveHdr1 = malloc(sizeof(WAVEHDR));
-                pWaveHdr2 = malloc(sizeof(WAVEHDR));
+                pBuffer1 = reinterpret_cast<PBYTE>(malloc(INP_BUFFER_SIZE));
+                pBuffer2 = reinterpret_cast<PBYTE>(malloc(INP_BUFFER_SIZE));
+                pWaveHdr1 = reinterpret_cast<PWAVEHDR>(malloc(sizeof(WAVEHDR)));
+                pWaveHdr2 = reinterpret_cast<PWAVEHDR>(malloc(sizeof(WAVEHDR)));
 
                 if ((NULL == pBuffer1) || (NULL == pBuffer2) || (NULL == pWaveHdr1) || (NULL == pWaveHdr2))
                 {
@@ -247,7 +247,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                     EditPrintf(hwndEdit, "Error: File not created: %s", szFileName);
                 }
 
-                pWaveHdr1->lpData = (void *)pBuffer1;
+                pWaveHdr1->lpData = (LPSTR)pBuffer1;
                 pWaveHdr1->dwBufferLength = INP_BUFFER_SIZE;
                 pWaveHdr1->dwBytesRecorded = 0;
                 pWaveHdr1->dwUser = 0;
@@ -257,7 +257,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                 pWaveHdr1->reserved = 0;
                 waveInPrepareHeader(hWaveIn, pWaveHdr1, sizeof(WAVEHDR));
 
-                pWaveHdr2->lpData = (void *)pBuffer2;
+                pWaveHdr2->lpData = (LPSTR)pBuffer2;
                 pWaveHdr2->dwBufferLength = INP_BUFFER_SIZE;
                 pWaveHdr2->dwBytesRecorded = 0;
                 pWaveHdr2->dwUser = 0;
@@ -530,7 +530,7 @@ static DWORD WINAPI SockThread(LPVOID pvoid)
     return 0;
 }
 
-static void EditPrintf(HWND hwndEdit, TCHAR *szFormat, ...)
+static void EditPrintf(HWND hwndEdit, const TCHAR *szFormat, ...)
 {
     static TCHAR szEndLine[] = TEXT("\r\n");
     TCHAR szBuffer[1024u];

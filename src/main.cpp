@@ -201,7 +201,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 
         case WM_USER_START:
             {
-                EditPrintf(hwndEdit, "Command: Start");
+                EditPrintf(hwndEdit, TEXT("Command: Start"));
 
                 bStopRecord = FALSE;
                 dwAudioDataCount = 0;
@@ -222,7 +222,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                             0,
                             CALLBACK_WINDOW))
                 {
-                    EditPrintf(hwndEdit, "Error: waveInOpen failed");
+                    EditPrintf(hwndEdit, TEXT("Error: waveInOpen failed"));
                     return 0;
                 }
 
@@ -243,7 +243,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 
                 if (hFileOut == INVALID_HANDLE_VALUE)
                 {
-                    EditPrintf(hwndEdit, "Error: File not created: %s", szFileName);
+                    EditPrintf(hwndEdit, TEXT("Error: File not created: %s"), szFileName);
                 }
 
                 WaveHdr1.lpData = (LPSTR)buffer1.data();
@@ -271,7 +271,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 
         case WM_USER_STOP:
             {
-                EditPrintf(hwndEdit, "Command: Stop");
+                EditPrintf(hwndEdit, TEXT("Command: Stop"));
                 bStopRecord = TRUE;
                 waveInReset(hWaveIn);
                 return 0;
@@ -282,7 +282,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                 waveInAddBuffer(hWaveIn, &WaveHdr1, sizeof(WAVEHDR));
                 waveInAddBuffer(hWaveIn, &WaveHdr2, sizeof(WAVEHDR));
                 waveInStart(hWaveIn);
-                EditPrintf(hwndEdit, "Audio input opened");
+                EditPrintf(hwndEdit, TEXT("Audio input opened"));
                 return 0;
             }
 
@@ -292,12 +292,12 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 
                 if (NULL == pWaveHdr)
                 {
-                    EditPrintf(hwndEdit, "Error: pWaveHdr is invalid");
+                    EditPrintf(hwndEdit, TEXT("Error: pWaveHdr is invalid"));
                     return 0;
                 }
 
                 ++dwAudioDataCount;
-                EditPrintf(hwndEdit, "%d: Audio samples: %d", dwAudioDataCount, pWaveHdr->dwBytesRecorded);
+                EditPrintf(hwndEdit, TEXT("%d: Audio samples: %d"), dwAudioDataCount, pWaveHdr->dwBytesRecorded);
 
                 if (0 != pWaveHdr->dwBytesRecorded)
                 {
@@ -324,7 +324,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
             {
                 waveInUnprepareHeader(hWaveIn, &WaveHdr1, sizeof(WAVEHDR));
                 waveInUnprepareHeader(hWaveIn, &WaveHdr2, sizeof(WAVEHDR));
-                EditPrintf(hwndEdit, "Audio input closed");
+                EditPrintf(hwndEdit, TEXT("Audio input closed"));
                 CloseFileHandle(&hFileOut);
                 return 0;
             }
@@ -343,19 +343,19 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 
                 if (IDM_APP_START == LOWORD(wParam))
                 {
-                    EditPrintf(hwndEdit, "Menu command: Start");
+                    EditPrintf(hwndEdit, TEXT("Menu command: Start"));
                     PostMessage(hwnd, WM_USER_START, 0, 0);
                 }
 
                 if (IDM_APP_STOP == LOWORD(wParam))
                 {
-                    EditPrintf(hwndEdit, "Menu command: Stop");
+                    EditPrintf(hwndEdit, TEXT("Menu command: Stop"));
                     PostMessage(hwnd, WM_USER_STOP, 0, 0);
                 }
 
                 if (IDM_APP_EXIT == LOWORD(wParam))
                 {
-                    EditPrintf(hwndEdit, "Menu command: Exit");
+                    EditPrintf(hwndEdit, TEXT("Menu command: Exit"));
                     bStopRecord = TRUE;
                     waveInReset(hWaveIn);
                     PostMessage(hwnd, WM_CLOSE, 0, 0);
@@ -394,11 +394,11 @@ static DWORD WINAPI SockThread(LPVOID pvoid)
 
     SetEvent(params.event);
 
-    EditPrintf(params.hwndEdit, "Thread started");
+    EditPrintf(params.hwndEdit, TEXT("Thread started"));
 
     while (1)
     {
-        EditPrintf(params.hwndEdit, "Waiting for commands");
+        EditPrintf(params.hwndEdit, TEXT("Waiting for commands"));
 
         WSADATA wsaData;
 
@@ -414,7 +414,7 @@ static DWORD WINAPI SockThread(LPVOID pvoid)
 
         if (iResult != 0)
         {
-            EditPrintf(params.hwndEdit, "WSAStartup failed with error: %d\n", iResult);
+            EditPrintf(params.hwndEdit, TEXT("WSAStartup failed with error: %d\n"), iResult);
             break;
         }
 
@@ -428,7 +428,7 @@ static DWORD WINAPI SockThread(LPVOID pvoid)
 
         if (iResult != 0)
         {
-            EditPrintf(params.hwndEdit, "getaddrinfo failed with error: %d\n", iResult);
+            EditPrintf(params.hwndEdit, TEXT("getaddrinfo failed with error: %d\n"), iResult);
             WSACleanup();
             break;
         }
@@ -436,7 +436,7 @@ static DWORD WINAPI SockThread(LPVOID pvoid)
         ListenSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
         if (ListenSocket == INVALID_SOCKET)
         {
-            EditPrintf(params.hwndEdit, "socket failed with error: %ld\n", WSAGetLastError());
+            EditPrintf(params.hwndEdit, TEXT("socket failed with error: %ld\n"), WSAGetLastError());
             freeaddrinfo(result);
             WSACleanup();
             break;
@@ -446,7 +446,7 @@ static DWORD WINAPI SockThread(LPVOID pvoid)
 
         if (iResult == SOCKET_ERROR)
         {
-            EditPrintf(params.hwndEdit, "bind failed with error: %d\n", WSAGetLastError());
+            EditPrintf(params.hwndEdit, TEXT("bind failed with error: %d\n"), WSAGetLastError());
             freeaddrinfo(result);
             closesocket(ListenSocket);
             WSACleanup();
@@ -459,7 +459,7 @@ static DWORD WINAPI SockThread(LPVOID pvoid)
 
         if (iResult == SOCKET_ERROR)
         {
-            EditPrintf(params.hwndEdit, "listen failed with error: %d\n", WSAGetLastError());
+            EditPrintf(params.hwndEdit, TEXT("listen failed with error: %d\n"), WSAGetLastError());
             closesocket(ListenSocket);
             WSACleanup();
             break;
@@ -469,7 +469,7 @@ static DWORD WINAPI SockThread(LPVOID pvoid)
 
         if (ClientSocket == INVALID_SOCKET)
         {
-            EditPrintf(params.hwndEdit, "accept failed with error: %d\n", WSAGetLastError());
+            EditPrintf(params.hwndEdit, TEXT("accept failed with error: %d\n"), WSAGetLastError());
             closesocket(ListenSocket);
             WSACleanup();
             break;
@@ -484,7 +484,7 @@ static DWORD WINAPI SockThread(LPVOID pvoid)
 
             if (iResult > 0)
             {
-                EditPrintf(params.hwndEdit, "Bytes received %d, message: %s\n", iResult, recvbuf);
+                EditPrintf(params.hwndEdit, TEXT("Bytes received %d, message: %s\n"), iResult, recvbuf);
 
                 if (0 == strcmp(recvbuf, "start"))
                 {
@@ -499,7 +499,7 @@ static DWORD WINAPI SockThread(LPVOID pvoid)
 
             if (iResult < 0)
             {
-                EditPrintf(params.hwndEdit, "recv failed with error: %d\n", WSAGetLastError());
+                EditPrintf(params.hwndEdit, TEXT("recv failed with error: %d\n"), WSAGetLastError());
                 closesocket(ClientSocket);
                 WSACleanup();
                 break;
@@ -511,7 +511,7 @@ static DWORD WINAPI SockThread(LPVOID pvoid)
 
         if (iResult == SOCKET_ERROR)
         {
-            EditPrintf(params.hwndEdit, "shutdown failed with error: %d\n", WSAGetLastError());
+            EditPrintf(params.hwndEdit, TEXT("shutdown failed with error: %d\n"), WSAGetLastError());
             closesocket(ClientSocket);
             WSACleanup();
             break;
@@ -521,7 +521,7 @@ static DWORD WINAPI SockThread(LPVOID pvoid)
         WSACleanup();
     }
 
-    EditPrintf(params.hwndEdit, "Thread exit");
+    EditPrintf(params.hwndEdit, TEXT("Thread exit"));
 
     ExitThread(0);
 
@@ -530,26 +530,26 @@ static DWORD WINAPI SockThread(LPVOID pvoid)
 
 static void EditPrintf(HWND hwndEdit, const TCHAR *szFormat, ...)
 {
-    static TCHAR szEndLine[] = TEXT("\r\n");
-    TCHAR szBuffer[1024u];
+    std::vector<TCHAR> szBuffer(1024);
     va_list pArgList;
 
-    memset(&szBuffer[0], 0, sizeof(szBuffer));
+    va_start(pArgList, szFormat);
+    wvsprintf(&szBuffer[0], szFormat, pArgList);
+    va_end(pArgList);
 
-    if (NULL != hwndEdit)
+    if (hwndEdit == NULL)
     {
-        va_start(pArgList, szFormat);
-        wvsprintf(&szBuffer[0], szFormat, pArgList);
-        va_end(pArgList);
-
-        SendMessage(hwndEdit, EM_SETSEL, (WPARAM)-1, (WPARAM)-1);
-        SendMessage(hwndEdit, EM_REPLACESEL, FALSE, (LPARAM)&szBuffer[0]);
-        SendMessage(hwndEdit, EM_SCROLLCARET, 0, 0);
-
-        SendMessage(hwndEdit, EM_SETSEL, (WPARAM)-1, (WPARAM)-1);
-        SendMessage(hwndEdit, EM_REPLACESEL, FALSE, (LPARAM)&szEndLine[0]);
-        SendMessage(hwndEdit, EM_SCROLLCARET, 0, 0);
+        return;
     }
+
+    SendMessage(hwndEdit, EM_SETSEL, (WPARAM)-1, (WPARAM)-1);
+    SendMessage(hwndEdit, EM_REPLACESEL, FALSE, (LPARAM)szBuffer.data());
+    SendMessage(hwndEdit, EM_SCROLLCARET, 0, 0);
+
+    TCHAR szEndLine[] = TEXT("\r\n");
+    SendMessage(hwndEdit, EM_SETSEL, (WPARAM)-1, (WPARAM)-1);
+    SendMessage(hwndEdit, EM_REPLACESEL, FALSE, (LPARAM)&szEndLine[0]);
+    SendMessage(hwndEdit, EM_SCROLLCARET, 0, 0);
 }
 
 static void CloseFileHandle(HANDLE *pHandle)

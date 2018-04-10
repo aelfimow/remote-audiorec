@@ -1,5 +1,16 @@
-CFLAGS = -mwindows -Wall -Wextra -pedantic -mthreads -D_MT
+CXXFLAGS  = -mwindows
+CXXFLAGS += -mthreads
+CXXFLAGS += -D_MT
+CXXFLAGS += -Wall
+CXXFLAGS += -Wextra
+CXXFLAGS += -pedantic
+CXXFLAGS += -Weffc++
+CXXFLAGS += -std=c++17
+CXXFLAGS += -O2
+
+LIBS  = -lWs2_32
+LIBS += -lwinmm
 
 all:
-	gcc -c main.c -o main.o ${CFLAGS}
-	gcc main.o -o remote-audiorec.exe ${CFLAGS} -lWs2_32 -lwinmm
+	c++ -c main.cpp -o main.o ${CXXFLAGS}
+	c++ main.o -o remote-audiorec.exe ${CXXFLAGS} ${LIBS}

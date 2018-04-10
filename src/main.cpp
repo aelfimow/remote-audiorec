@@ -35,8 +35,6 @@ static void CloseFileHandle(HANDLE *pHandle);
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine, int iCmdShow)
 {
     static const TCHAR szAppName[] = TEXT("remote-audiorec");
-    HWND hwnd = NULL;
-    MSG msg;
     WNDCLASS wndclass;
 
     hPrevInstance = hPrevInstance;
@@ -59,7 +57,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
         return 0;
     }
 
-    hwnd = CreateWindow(
+    HWND hwnd = CreateWindow(
             &szAppName[0],
             &szAppName[0],
             WS_OVERLAPPEDWINDOW,
@@ -86,6 +84,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
         return 0;
     }
 
+    MSG msg;
     auto msgres = GetMessage(&msg, NULL, 0, 0);
 
     while ((msgres != 0) && (msgres != -1))
@@ -96,7 +95,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
         msgres = GetMessage(&msg, NULL, 0, 0);
     }
 
-    return msg.wParam;
+    if (msgres == -1)
+    {
+        (void)MessageBox(NULL, TEXT("Error in GetMessage."), &szAppName[0], MB_ICONERROR);
+        return 0;
+    }
+
+    return 0;
 }
 
 static HMENU AppCustomMenu(void)

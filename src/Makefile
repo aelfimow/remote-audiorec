@@ -13,5 +13,7 @@ LIBS  = -lWs2_32
 LIBS += -lwinmm
 
 all:
+	c++ -c SocketThread.cpp -o SocketThread.o ${CXXFLAGS}
+	c++ -c SocketThread_priv.cpp -o SocketThread_priv.o ${CXXFLAGS}
 	c++ -c main.cpp -o main.o ${CXXFLAGS}
 	c++ main.o -o remote-audiorec.exe ${CXXFLAGS} ${LIBS}

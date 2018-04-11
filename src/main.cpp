@@ -7,11 +7,6 @@
 #include "SocketThread.h"
 
 
-#define ID_EDIT         1
-#define IDM_APP_EXIT    40000
-#define IDM_APP_START   40001
-#define IDM_APP_STOP    40002
-
 #define INP_BUFFER_SIZE (3 * 192000)
 
 
@@ -124,15 +119,25 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 
 static HMENU AppCustomMenu(void)
 {
-    HMENU hMenu = CreateMenu();
-    HMENU hMenuPopup = CreateMenu();
+    auto hFileMenu = CreateMenu();
+    {
+        (void)AppendMenu(hFileMenu, MF_STRING, IDM_APP_START, TEXT("Start"));
+        (void)AppendMenu(hFileMenu, MF_STRING, IDM_APP_STOP, TEXT("Stop"));
+        (void)AppendMenu(hFileMenu, MF_SEPARATOR, 0, NULL);
+        (void)AppendMenu(hFileMenu, MF_STRING, IDM_APP_EXIT, TEXT("&Exit"));
+    }
 
-    (void)AppendMenu(hMenuPopup, MF_STRING, IDM_APP_START, TEXT("Start"));
-    (void)AppendMenu(hMenuPopup, MF_STRING, IDM_APP_STOP, TEXT("Stop"));
-    (void)AppendMenu(hMenuPopup, MF_SEPARATOR, 0, NULL);
-    (void)AppendMenu(hMenuPopup, MF_STRING, IDM_APP_EXIT, TEXT("&Exit"));
+    auto hThreadMenu = CreateMenu();
+    {
+        (void)AppendMenu(hThreadMenu, MF_STRING, IDM_APP_START_SOCKET_THREAD, TEXT("Start"));
+        (void)AppendMenu(hThreadMenu, MF_STRING, IDM_APP_STOP_SOCKET_THREAD, TEXT("Stop"));
+    }
 
-    (void)AppendMenu(hMenu, MF_POPUP, (UINT_PTR)hMenuPopup, TEXT("&File"));
+    auto hMenu = CreateMenu();
+    {
+        (void)AppendMenu(hMenu, MF_POPUP, (UINT_PTR)hFileMenu, TEXT("&File"));
+        (void)AppendMenu(hMenu, MF_POPUP, (UINT_PTR)hThreadMenu, TEXT("&Socket Thread"));
+    }
 
     return hMenu;
 }
@@ -357,6 +362,16 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                 {
                     EditPrintf(hwndEdit, TEXT("Menu command: Stop"));
                     PostMessage(hwnd, WM_USER_STOP, 0, 0);
+                }
+
+                if (IDM_APP_START_SOCKET_THREAD == LOWORD(wParam))
+                {
+                    EditPrintf(hwndEdit, TEXT("Menu command: Start socket thread"));
+                }
+
+                if (IDM_APP_STOP_SOCKET_THREAD == LOWORD(wParam))
+                {
+                    EditPrintf(hwndEdit, TEXT("Menu command: Stop socket thread"));
                 }
 
                 if (IDM_APP_EXIT == LOWORD(wParam))

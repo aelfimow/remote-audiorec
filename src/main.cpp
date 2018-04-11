@@ -5,6 +5,10 @@
 #include <stdlib.h>
 #include <vector>
 
+#include "main.h"
+#include "SocketThread_param.h"
+
+
 #define ID_EDIT         1
 #define IDM_APP_EXIT    40000
 #define IDM_APP_START   40001
@@ -13,18 +17,33 @@
 #define MY_PORT         "50000"
 #define RX_BUFFER_SIZE  1024
 
-#define WM_USER_START   (WM_USER + 1u)
-#define WM_USER_STOP    (WM_USER + 2u)
-
-
-struct tThreadParams
-{
-    HANDLE event;
-    HWND hwnd;
-    HWND hwndEdit;
-};
-
 #define INP_BUFFER_SIZE (3 * 192000)
+
+
+void EditPrintf(HWND hwndEdit, const TCHAR *szFormat, ...)
+{
+    std::vector<TCHAR> szBuffer(1024);
+    va_list pArgList;
+
+    va_start(pArgList, szFormat);
+    wvsprintf(&szBuffer[0], szFormat, pArgList);
+    va_end(pArgList);
+
+    if (hwndEdit == NULL)
+    {
+        return;
+    }
+
+    SendMessage(hwndEdit, EM_SETSEL, (WPARAM)-1, (WPARAM)-1);
+    SendMessage(hwndEdit, EM_REPLACESEL, FALSE, (LPARAM)szBuffer.data());
+    SendMessage(hwndEdit, EM_SCROLLCARET, 0, 0);
+
+    TCHAR szEndLine[] = TEXT("\r\n");
+    SendMessage(hwndEdit, EM_SETSEL, (WPARAM)-1, (WPARAM)-1);
+    SendMessage(hwndEdit, EM_REPLACESEL, FALSE, (LPARAM)&szEndLine[0]);
+    SendMessage(hwndEdit, EM_SCROLLCARET, 0, 0);
+}
+
 
 static std::vector<BYTE> buffer1(INP_BUFFER_SIZE);
 static std::vector<BYTE> buffer2(INP_BUFFER_SIZE);
@@ -35,7 +54,6 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 static HMENU AppCustomMenu(void);
 
 static DWORD WINAPI SockThread(LPVOID pvoid);
-static void EditPrintf(HWND hwndEdit, const TCHAR *szFormat, ...);
 static void CloseFileHandle(HANDLE *pHandle);
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine, int iCmdShow)
@@ -165,17 +183,17 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                 // Set limit of text to max.
                 SendMessage(hwndEdit, EM_LIMITTEXT, 0, 0L);
 
-                struct tThreadParams ThreadParams;
-                ThreadParams.hwnd = hwnd;
-                ThreadParams.hwndEdit = hwndEdit;
-                ThreadParams.event = CreateEvent(NULL, FALSE, FALSE, NULL);
+                struct ThreadParams params;
+                params.hwnd = hwnd;
+                params.hwndEdit = hwndEdit;
+                params.event = CreateEvent(NULL, FALSE, FALSE, NULL);
 
-                hSockThread = CreateThread(NULL, 0, &SockThread, (LPVOID)&ThreadParams, 0, &SockThreadID);
+                hSockThread = CreateThread(NULL, 0, &SockThread, (LPVOID)&params, 0, &SockThreadID);
 
                 if (NULL != hSockThread)
                 {
                     /* thread created, wait for thread creating message queue */
-                    WaitForSingleObject(ThreadParams.event, INFINITE);
+                    WaitForSingleObject(params.event, INFINITE);
                 }
 
                 return 0;
@@ -385,10 +403,10 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 
 static DWORD WINAPI SockThread(LPVOID pvoid)
 {
-    struct tThreadParams params;
+    struct ThreadParams params;
     MSG msg;
 
-    memcpy(&params, pvoid, sizeof(struct tThreadParams));
+    memcpy(&params, pvoid, sizeof(struct ThreadParams));
 
     PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
 
@@ -526,30 +544,6 @@ static DWORD WINAPI SockThread(LPVOID pvoid)
     ExitThread(0);
 
     return 0;
-}
-
-static void EditPrintf(HWND hwndEdit, const TCHAR *szFormat, ...)
-{
-    std::vector<TCHAR> szBuffer(1024);
-    va_list pArgList;
-
-    va_start(pArgList, szFormat);
-    wvsprintf(&szBuffer[0], szFormat, pArgList);
-    va_end(pArgList);
-
-    if (hwndEdit == NULL)
-    {
-        return;
-    }
-
-    SendMessage(hwndEdit, EM_SETSEL, (WPARAM)-1, (WPARAM)-1);
-    SendMessage(hwndEdit, EM_REPLACESEL, FALSE, (LPARAM)szBuffer.data());
-    SendMessage(hwndEdit, EM_SCROLLCARET, 0, 0);
-
-    TCHAR szEndLine[] = TEXT("\r\n");
-    SendMessage(hwndEdit, EM_SETSEL, (WPARAM)-1, (WPARAM)-1);
-    SendMessage(hwndEdit, EM_REPLACESEL, FALSE, (LPARAM)&szEndLine[0]);
-    SendMessage(hwndEdit, EM_SCROLLCARET, 0, 0);
 }
 
 static void CloseFileHandle(HANDLE *pHandle)

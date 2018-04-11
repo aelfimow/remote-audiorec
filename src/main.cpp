@@ -1,21 +1,16 @@
-#include <winsock2.h>
 #include <windows.h>
-#include <process.h>
-#include <ws2tcpip.h>
 #include <stdlib.h>
 #include <vector>
 
 #include "main.h"
 #include "SocketThread_param.h"
+#include "SocketThread.h"
 
 
 #define ID_EDIT         1
 #define IDM_APP_EXIT    40000
 #define IDM_APP_START   40001
 #define IDM_APP_STOP    40002
-
-#define MY_PORT         "50000"
-#define RX_BUFFER_SIZE  1024
 
 #define INP_BUFFER_SIZE (3 * 192000)
 
@@ -53,7 +48,6 @@ static WAVEHDR WaveHdr2;
 static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 static HMENU AppCustomMenu(void);
 
-static DWORD WINAPI SockThread(LPVOID pvoid);
 static void CloseFileHandle(HANDLE *pHandle);
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine, int iCmdShow)
@@ -145,8 +139,7 @@ static HMENU AppCustomMenu(void)
 
 static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    static DWORD SockThreadID = 0;
-    static HANDLE hSockThread = NULL;
+    static SocketThread *pSocketThread = nullptr;
     static HWND hwndEdit = NULL;
     static HANDLE hFileOut = INVALID_HANDLE_VALUE;
     static TCHAR szFileName[512];
@@ -188,13 +181,8 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                 params.hwndEdit = hwndEdit;
                 params.event = CreateEvent(NULL, FALSE, FALSE, NULL);
 
-                hSockThread = CreateThread(NULL, 0, &SockThread, (LPVOID)&params, 0, &SockThreadID);
-
-                if (NULL != hSockThread)
-                {
-                    /* thread created, wait for thread creating message queue */
-                    WaitForSingleObject(params.event, INFINITE);
-                }
+                pSocketThread = new SocketThread { params };
+                pSocketThread->start();
 
                 return 0;
             }
@@ -387,6 +375,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                 bStopRecord = TRUE;
                 waveInReset(hWaveIn);
                 CloseFileHandle(&hFileOut);
+                delete pSocketThread;
                 PostQuitMessage(0);
                 return 0;
             }
@@ -399,151 +388,6 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
     }
 
     return DefWindowProc(hwnd, message, wParam, lParam);
-}
-
-static DWORD WINAPI SockThread(LPVOID pvoid)
-{
-    struct ThreadParams params;
-    MSG msg;
-
-    memcpy(&params, pvoid, sizeof(struct ThreadParams));
-
-    PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
-
-    SetEvent(params.event);
-
-    EditPrintf(params.hwndEdit, TEXT("Thread started"));
-
-    while (1)
-    {
-        EditPrintf(params.hwndEdit, TEXT("Waiting for commands"));
-
-        WSADATA wsaData;
-
-        SOCKET ListenSocket = INVALID_SOCKET;
-        SOCKET ClientSocket = INVALID_SOCKET;
-
-        struct addrinfo *result = NULL;
-        struct addrinfo hints;
-
-        char recvbuf[RX_BUFFER_SIZE];
-
-        int iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
-
-        if (iResult != 0)
-        {
-            EditPrintf(params.hwndEdit, TEXT("WSAStartup failed with error: %d\n"), iResult);
-            break;
-        }
-
-        ZeroMemory(&hints, sizeof(hints));
-        hints.ai_family = AF_INET;
-        hints.ai_socktype = SOCK_STREAM;
-        hints.ai_protocol = IPPROTO_TCP;
-        hints.ai_flags = AI_PASSIVE;
-
-        iResult = getaddrinfo(NULL, MY_PORT, &hints, &result);
-
-        if (iResult != 0)
-        {
-            EditPrintf(params.hwndEdit, TEXT("getaddrinfo failed with error: %d\n"), iResult);
-            WSACleanup();
-            break;
-        }
-
-        ListenSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
-        if (ListenSocket == INVALID_SOCKET)
-        {
-            EditPrintf(params.hwndEdit, TEXT("socket failed with error: %ld\n"), WSAGetLastError());
-            freeaddrinfo(result);
-            WSACleanup();
-            break;
-        }
-
-        iResult = bind(ListenSocket, result->ai_addr, (int)result->ai_addrlen);
-
-        if (iResult == SOCKET_ERROR)
-        {
-            EditPrintf(params.hwndEdit, TEXT("bind failed with error: %d\n"), WSAGetLastError());
-            freeaddrinfo(result);
-            closesocket(ListenSocket);
-            WSACleanup();
-            break;
-        }
-
-        freeaddrinfo(result);
-
-        iResult = listen(ListenSocket, SOMAXCONN);
-
-        if (iResult == SOCKET_ERROR)
-        {
-            EditPrintf(params.hwndEdit, TEXT("listen failed with error: %d\n"), WSAGetLastError());
-            closesocket(ListenSocket);
-            WSACleanup();
-            break;
-        }
-
-        ClientSocket = accept(ListenSocket, NULL, NULL);
-
-        if (ClientSocket == INVALID_SOCKET)
-        {
-            EditPrintf(params.hwndEdit, TEXT("accept failed with error: %d\n"), WSAGetLastError());
-            closesocket(ListenSocket);
-            WSACleanup();
-            break;
-        }
-
-        closesocket(ListenSocket);
-
-        do
-        {
-            ZeroMemory(recvbuf, sizeof(recvbuf));
-            iResult = recv(ClientSocket, recvbuf, sizeof(recvbuf) - 1, 0);
-
-            if (iResult > 0)
-            {
-                EditPrintf(params.hwndEdit, TEXT("Bytes received %d, message: %s\n"), iResult, recvbuf);
-
-                if (0 == strcmp(recvbuf, "start"))
-                {
-                    (void)PostMessage(params.hwnd, WM_USER_START, 0, 0);
-                }
-
-                if (0 == strcmp(recvbuf, "stop"))
-                {
-                    (void)PostMessage(params.hwnd, WM_USER_STOP, 0, 0);
-                }
-            }
-
-            if (iResult < 0)
-            {
-                EditPrintf(params.hwndEdit, TEXT("recv failed with error: %d\n"), WSAGetLastError());
-                closesocket(ClientSocket);
-                WSACleanup();
-                break;
-            }
-
-        } while (iResult > 0);
-
-        iResult = shutdown(ClientSocket, SD_SEND);
-
-        if (iResult == SOCKET_ERROR)
-        {
-            EditPrintf(params.hwndEdit, TEXT("shutdown failed with error: %d\n"), WSAGetLastError());
-            closesocket(ClientSocket);
-            WSACleanup();
-            break;
-        }
-
-        closesocket(ClientSocket);
-        WSACleanup();
-    }
-
-    EditPrintf(params.hwndEdit, TEXT("Thread exit"));
-
-    ExitThread(0);
-
-    return 0;
 }
 
 static void CloseFileHandle(HANDLE *pHandle)

@@ -225,13 +225,15 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                 waveform.wBitsPerSample = 24;
                 waveform.cbSize = 0;
 
-                if (MMSYSERR_NOERROR != waveInOpen(
+                auto waveInOpen_result = waveInOpen(
                             &hWaveIn,
                             WAVE_MAPPER,
                             &waveform,
                             (DWORD_PTR)hwnd,
                             0,
-                            CALLBACK_WINDOW))
+                            CALLBACK_WINDOW);
+
+                if (MMSYSERR_NOERROR != waveInOpen_result)
                 {
                     EditPrintf(hwndEdit, TEXT("Error: waveInOpen failed"));
                     return 0;

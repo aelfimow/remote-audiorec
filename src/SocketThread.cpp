@@ -18,3 +18,8 @@ void SocketThread::start()
 {
     m_priv->start();
 }
+
+void SocketThread::stop()
+{
+    m_priv->stop();
+}

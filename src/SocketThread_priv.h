@@ -12,6 +12,7 @@ class SocketThread_priv
         ~SocketThread_priv();
 
         void start();
+        void stop();
 
     private:
         HANDLE hThread;

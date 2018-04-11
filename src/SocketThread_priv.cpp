@@ -38,6 +38,10 @@ void SocketThread_priv::start()
     }
 }
 
+void SocketThread_priv::stop()
+{
+}
+
 DWORD WINAPI SocketThread_priv::threadFunc(LPVOID pvoid)
 {
     SocketThread_priv * const pInst = reinterpret_cast<SocketThread_priv*>(pvoid);

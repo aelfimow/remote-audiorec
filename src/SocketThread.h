@@ -13,6 +13,7 @@ class SocketThread
         ~SocketThread();
 
         void start();
+        void stop();
 
     private:
         SocketThread_priv * const m_priv;

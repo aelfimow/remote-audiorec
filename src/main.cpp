@@ -342,39 +342,31 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 
         case WM_COMMAND:
             {
-                /* check for errors from edit field */
-                if (ID_EDIT == LOWORD(wParam))
-                {
-                    if ((EN_ERRSPACE == HIWORD(wParam)) || (EN_MAXTEXT == HIWORD(wParam)))
-                    {
-                        /* edit window has no RAM and reports error */
-                        /* do nothing here */
-                    }
-                }
+                auto cmd = LOWORD(wParam);
 
-                if (IDM_APP_START == LOWORD(wParam))
+                if (IDM_APP_START == cmd)
                 {
                     EditPrintf(hwndEdit, TEXT("Menu command: Start"));
                     PostMessage(hwnd, WM_USER_START, 0, 0);
                 }
 
-                if (IDM_APP_STOP == LOWORD(wParam))
+                if (IDM_APP_STOP == cmd)
                 {
                     EditPrintf(hwndEdit, TEXT("Menu command: Stop"));
                     PostMessage(hwnd, WM_USER_STOP, 0, 0);
                 }
 
-                if (IDM_APP_START_SOCKET_THREAD == LOWORD(wParam))
+                if (IDM_APP_START_SOCKET_THREAD == cmd)
                 {
                     EditPrintf(hwndEdit, TEXT("Menu command: Start socket thread"));
                 }
 
-                if (IDM_APP_STOP_SOCKET_THREAD == LOWORD(wParam))
+                if (IDM_APP_STOP_SOCKET_THREAD == cmd)
                 {
                     EditPrintf(hwndEdit, TEXT("Menu command: Stop socket thread"));
                 }
 
-                if (IDM_APP_EXIT == LOWORD(wParam))
+                if (IDM_APP_EXIT == cmd)
                 {
                     EditPrintf(hwndEdit, TEXT("Menu command: Exit"));
                     bStopRecord = TRUE;

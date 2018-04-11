@@ -2,7 +2,6 @@
 #include <Windows.h>
 #include <process.h>
 #include <ws2tcpip.h>
-#include <stdlib.h>
 
 #include "main.h"
 #include "SocketThread_param.h"

@@ -2,6 +2,8 @@
 #include <Windows.h>
 #include <process.h>
 #include <ws2tcpip.h>
+#include <string>
+#include <vector>
 
 #include "main.h"
 #include "SocketThread_param.h"
@@ -10,7 +12,6 @@
 
 
 #define MY_PORT         "50000"
-#define RX_BUFFER_SIZE  1024
 
 
 extern void EditPrintf(HWND hwndEdit, const TCHAR *szFormat, ...);
@@ -72,8 +73,6 @@ DWORD WINAPI SocketThread_priv::threadFunc(LPVOID pvoid)
         struct addrinfo *result = NULL;
         struct addrinfo hints;
 
-        char recvbuf[RX_BUFFER_SIZE];
-
         ZeroMemory(&hints, sizeof(hints));
         hints.ai_family = AF_INET;
         hints.ai_socktype = SOCK_STREAM;
@@ -128,34 +127,35 @@ DWORD WINAPI SocketThread_priv::threadFunc(LPVOID pvoid)
 
         closesocket(ListenSocket);
 
-        do
+        std::vector<char> recvbuf(1024);
+
+        auto recv_bytes = recv(ClientSocket, recvbuf.data(), recvbuf.size(), 0);
+
+        if (recv_bytes > 0)
         {
-            ZeroMemory(recvbuf, sizeof(recvbuf));
-            iResult = recv(ClientSocket, recvbuf, sizeof(recvbuf) - 1, 0);
+            std::string::size_type total_chars = recv_bytes;
 
-            if (iResult > 0)
+            std::string str { recvbuf.data(), total_chars };
+
+            EditPrintf(pInst->hwndEdit, TEXT("Bytes received %d, message: %s\n"), recv_bytes, str.c_str());
+
+            if (str == "start")
             {
-                EditPrintf(pInst->hwndEdit, TEXT("Bytes received %d, message: %s\n"), iResult, recvbuf);
-
-                if (0 == strcmp(recvbuf, "start"))
-                {
-                    (void)PostMessage(pInst->hwnd, WM_USER_START, 0, 0);
-                }
-
-                if (0 == strcmp(recvbuf, "stop"))
-                {
-                    (void)PostMessage(pInst->hwnd, WM_USER_STOP, 0, 0);
-                }
+                (void)PostMessage(pInst->hwnd, WM_USER_START, 0, 0);
             }
 
-            if (iResult < 0)
+            if (str == "stop")
             {
-                EditPrintf(pInst->hwndEdit, TEXT("recv failed with error: %d\n"), WSAGetLastError());
-                closesocket(ClientSocket);
-                break;
+                (void)PostMessage(pInst->hwnd, WM_USER_STOP, 0, 0);
             }
+        }
 
-        } while (iResult > 0);
+        if (recv_bytes < 0)
+        {
+            EditPrintf(pInst->hwndEdit, TEXT("recv failed with error: %d\n"), WSAGetLastError());
+            closesocket(ClientSocket);
+            break;
+        }
 
         iResult = shutdown(ClientSocket, SD_SEND);
 

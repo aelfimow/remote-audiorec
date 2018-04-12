@@ -6,6 +6,7 @@
 #include "main.h"
 #include "SocketThread_param.h"
 #include "SocketThread_priv.h"
+#include "WSAStarter.h"
 
 
 #define MY_PORT         "50000"
@@ -57,7 +58,13 @@ DWORD WINAPI SocketThread_priv::threadFunc(LPVOID pvoid)
     {
         EditPrintf(pInst->hwndEdit, TEXT("Waiting for commands"));
 
-        WSADATA wsaData;
+        WSAStarter wsa;
+
+        if (wsa.is_error())
+        {
+            EditPrintf(pInst->hwndEdit, TEXT("WSAStarter failed with error\n"));
+            break;
+        }
 
         SOCKET ListenSocket = INVALID_SOCKET;
         SOCKET ClientSocket = INVALID_SOCKET;
@@ -67,26 +74,17 @@ DWORD WINAPI SocketThread_priv::threadFunc(LPVOID pvoid)
 
         char recvbuf[RX_BUFFER_SIZE];
 
-        int iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
-
-        if (iResult != 0)
-        {
-            EditPrintf(pInst->hwndEdit, TEXT("WSAStartup failed with error: %d\n"), iResult);
-            break;
-        }
-
         ZeroMemory(&hints, sizeof(hints));
         hints.ai_family = AF_INET;
         hints.ai_socktype = SOCK_STREAM;
         hints.ai_protocol = IPPROTO_TCP;
         hints.ai_flags = AI_PASSIVE;
 
-        iResult = getaddrinfo(NULL, MY_PORT, &hints, &result);
+        int iResult = getaddrinfo(NULL, MY_PORT, &hints, &result);
 
         if (iResult != 0)
         {
             EditPrintf(pInst->hwndEdit, TEXT("getaddrinfo failed with error: %d\n"), iResult);
-            WSACleanup();
             break;
         }
 
@@ -95,7 +93,6 @@ DWORD WINAPI SocketThread_priv::threadFunc(LPVOID pvoid)
         {
             EditPrintf(pInst->hwndEdit, TEXT("socket failed with error: %ld\n"), WSAGetLastError());
             freeaddrinfo(result);
-            WSACleanup();
             break;
         }
 
@@ -106,7 +103,6 @@ DWORD WINAPI SocketThread_priv::threadFunc(LPVOID pvoid)
             EditPrintf(pInst->hwndEdit, TEXT("bind failed with error: %d\n"), WSAGetLastError());
             freeaddrinfo(result);
             closesocket(ListenSocket);
-            WSACleanup();
             break;
         }
 
@@ -118,7 +114,6 @@ DWORD WINAPI SocketThread_priv::threadFunc(LPVOID pvoid)
         {
             EditPrintf(pInst->hwndEdit, TEXT("listen failed with error: %d\n"), WSAGetLastError());
             closesocket(ListenSocket);
-            WSACleanup();
             break;
         }
 
@@ -128,7 +123,6 @@ DWORD WINAPI SocketThread_priv::threadFunc(LPVOID pvoid)
         {
             EditPrintf(pInst->hwndEdit, TEXT("accept failed with error: %d\n"), WSAGetLastError());
             closesocket(ListenSocket);
-            WSACleanup();
             break;
         }
 
@@ -158,7 +152,6 @@ DWORD WINAPI SocketThread_priv::threadFunc(LPVOID pvoid)
             {
                 EditPrintf(pInst->hwndEdit, TEXT("recv failed with error: %d\n"), WSAGetLastError());
                 closesocket(ClientSocket);
-                WSACleanup();
                 break;
             }
 
@@ -170,12 +163,10 @@ DWORD WINAPI SocketThread_priv::threadFunc(LPVOID pvoid)
         {
             EditPrintf(pInst->hwndEdit, TEXT("shutdown failed with error: %d\n"), WSAGetLastError());
             closesocket(ClientSocket);
-            WSACleanup();
             break;
         }
 
         closesocket(ClientSocket);
-        WSACleanup();
     }
 
     EditPrintf(pInst->hwndEdit, TEXT("Thread exit"));

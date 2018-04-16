@@ -9,6 +9,7 @@
 #include "SocketThread_param.h"
 #include "SocketThread_priv.h"
 #include "WSAStarter.h"
+#include "AddrInfo.h"
 
 
 #define MY_PORT         "50000"
@@ -70,42 +71,28 @@ DWORD WINAPI SocketThread_priv::threadFunc(LPVOID pvoid)
         SOCKET ListenSocket = INVALID_SOCKET;
         SOCKET ClientSocket = INVALID_SOCKET;
 
-        struct addrinfo *result = NULL;
-        struct addrinfo hints;
-
-        ZeroMemory(&hints, sizeof(hints));
-        hints.ai_family = AF_INET;
-        hints.ai_socktype = SOCK_STREAM;
-        hints.ai_protocol = IPPROTO_TCP;
-        hints.ai_flags = AI_PASSIVE;
-
-        int iResult = getaddrinfo(NULL, MY_PORT, &hints, &result);
-
-        if (iResult != 0)
+        AddrInfo ai { MY_PORT };
+        if (ai.is_error())
         {
-            EditPrintf(pInst->hwndEdit, TEXT("getaddrinfo failed with error: %d\n"), iResult);
+            EditPrintf(pInst->hwndEdit, TEXT("AddrInfo failed\n"));
             break;
         }
 
-        ListenSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+        ListenSocket = socket(ai.get()->ai_family, ai.get()->ai_socktype, ai.get()->ai_protocol);
         if (ListenSocket == INVALID_SOCKET)
         {
             EditPrintf(pInst->hwndEdit, TEXT("socket failed with error: %ld\n"), WSAGetLastError());
-            freeaddrinfo(result);
             break;
         }
 
-        iResult = bind(ListenSocket, result->ai_addr, (int)result->ai_addrlen);
+        auto iResult = bind(ListenSocket, ai.get()->ai_addr, (int)ai.get()->ai_addrlen);
 
         if (iResult == SOCKET_ERROR)
         {
             EditPrintf(pInst->hwndEdit, TEXT("bind failed with error: %d\n"), WSAGetLastError());
-            freeaddrinfo(result);
             closesocket(ListenSocket);
             break;
         }
-
-        freeaddrinfo(result);
 
         iResult = listen(ListenSocket, SOMAXCONN);
 

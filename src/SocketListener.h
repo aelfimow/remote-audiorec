@@ -15,6 +15,7 @@ class SocketListener
 
         void listen();
         void close();
+        SOCKET accept();
 
     private:
         bool m_error;

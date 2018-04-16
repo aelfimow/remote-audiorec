@@ -47,3 +47,8 @@ void SocketListener::close()
         m_socket = INVALID_SOCKET;
     }
 }
+
+SOCKET SocketListener::accept()
+{
+    return ::accept(m_socket, NULL, NULL);
+}

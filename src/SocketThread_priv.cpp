@@ -10,6 +10,7 @@
 #include "SocketThread_priv.h"
 #include "WSAStarter.h"
 #include "AddrInfo.h"
+#include "SocketListener.h"
 
 
 #define MY_PORT         "50000"
@@ -68,51 +69,38 @@ DWORD WINAPI SocketThread_priv::threadFunc(LPVOID pvoid)
             break;
         }
 
-        SOCKET ListenSocket = INVALID_SOCKET;
-        SOCKET ClientSocket = INVALID_SOCKET;
-
         AddrInfo ai { MY_PORT };
         if (ai.is_error())
         {
-            EditPrintf(pInst->hwndEdit, TEXT("AddrInfo failed\n"));
+            EditPrintf(pInst->hwndEdit, TEXT("AddrInfo failed"));
             break;
         }
 
-        ListenSocket = socket(ai.get()->ai_family, ai.get()->ai_socktype, ai.get()->ai_protocol);
-        if (ListenSocket == INVALID_SOCKET)
+        SocketListener sockListener { ai };
+
+        if (sockListener.is_error())
         {
-            EditPrintf(pInst->hwndEdit, TEXT("socket failed with error: %ld\n"), WSAGetLastError());
+            EditPrintf(pInst->hwndEdit, TEXT("Socket listener creation failed"));
             break;
         }
 
-        auto iResult = bind(ListenSocket, ai.get()->ai_addr, (int)ai.get()->ai_addrlen);
+        sockListener.listen();
 
-        if (iResult == SOCKET_ERROR)
+        if (sockListener.is_error())
         {
-            EditPrintf(pInst->hwndEdit, TEXT("bind failed with error: %d\n"), WSAGetLastError());
-            closesocket(ListenSocket);
+            EditPrintf(pInst->hwndEdit, TEXT("Socket listening failed"));
             break;
         }
 
-        iResult = listen(ListenSocket, SOMAXCONN);
-
-        if (iResult == SOCKET_ERROR)
-        {
-            EditPrintf(pInst->hwndEdit, TEXT("listen failed with error: %d\n"), WSAGetLastError());
-            closesocket(ListenSocket);
-            break;
-        }
-
-        ClientSocket = accept(ListenSocket, NULL, NULL);
+        auto ClientSocket = sockListener.accept();
 
         if (ClientSocket == INVALID_SOCKET)
         {
             EditPrintf(pInst->hwndEdit, TEXT("accept failed with error: %d\n"), WSAGetLastError());
-            closesocket(ListenSocket);
             break;
         }
 
-        closesocket(ListenSocket);
+        sockListener.close();
 
         std::vector<char> recvbuf(1024);
 
@@ -144,7 +132,7 @@ DWORD WINAPI SocketThread_priv::threadFunc(LPVOID pvoid)
             break;
         }
 
-        iResult = shutdown(ClientSocket, SD_SEND);
+        auto iResult = shutdown(ClientSocket, SD_SEND);
 
         if (iResult == SOCKET_ERROR)
         {

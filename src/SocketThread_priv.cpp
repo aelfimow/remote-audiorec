@@ -11,6 +11,7 @@
 #include "WSAStarter.h"
 #include "AddrInfo.h"
 #include "SocketListener.h"
+#include "SocketScope.h"
 
 
 #define MY_PORT         "50000"
@@ -57,7 +58,7 @@ DWORD WINAPI SocketThread_priv::threadFunc(LPVOID pvoid)
 
     EditPrintf(pInst->hwndEdit, TEXT("Thread started"));
 
-    while (1)
+    while (true)
     {
         EditPrintf(pInst->hwndEdit, TEXT("Waiting for commands"));
 
@@ -92,56 +93,33 @@ DWORD WINAPI SocketThread_priv::threadFunc(LPVOID pvoid)
             break;
         }
 
-        auto ClientSocket = sockListener.accept();
-
-        if (ClientSocket == INVALID_SOCKET)
-        {
-            EditPrintf(pInst->hwndEdit, TEXT("accept failed with error: %d\n"), WSAGetLastError());
-            break;
-        }
+        SocketScope clientSock { sockListener.accept() };
 
         sockListener.close();
 
-        std::vector<char> recvbuf(1024);
-
-        auto recv_bytes = recv(ClientSocket, recvbuf.data(), recvbuf.size(), 0);
-
-        if (recv_bytes > 0)
+        if (clientSock.is_error())
         {
-            std::string::size_type total_chars = recv_bytes;
-
-            std::string str { recvbuf.data(), total_chars };
-
-            EditPrintf(pInst->hwndEdit, TEXT("Bytes received %d, message: %s\n"), recv_bytes, str.c_str());
-
-            if (str == "start")
-            {
-                (void)PostMessage(pInst->hwnd, WM_USER_START, 0, 0);
-            }
-
-            if (str == "stop")
-            {
-                (void)PostMessage(pInst->hwnd, WM_USER_STOP, 0, 0);
-            }
-        }
-
-        if (recv_bytes < 0)
-        {
-            EditPrintf(pInst->hwndEdit, TEXT("recv failed with error: %d\n"), WSAGetLastError());
-            closesocket(ClientSocket);
+            EditPrintf(pInst->hwndEdit, TEXT("SocketScope creation failed"));
             break;
         }
 
-        auto iResult = shutdown(ClientSocket, SD_SEND);
+        const std::string cmd = clientSock.recv();
 
-        if (iResult == SOCKET_ERROR)
+        if (clientSock.is_error())
         {
-            EditPrintf(pInst->hwndEdit, TEXT("shutdown failed with error: %d\n"), WSAGetLastError());
-            closesocket(ClientSocket);
+            EditPrintf(pInst->hwndEdit, TEXT("SocketScope recv failed"));
             break;
         }
 
-        closesocket(ClientSocket);
+        if (cmd == "start")
+        {
+            (void)PostMessage(pInst->hwnd, WM_USER_START, 0, 0);
+        }
+
+        if (cmd == "stop")
+        {
+            (void)PostMessage(pInst->hwnd, WM_USER_STOP, 0, 0);
+        }
     }
 
     EditPrintf(pInst->hwndEdit, TEXT("Thread exit"));

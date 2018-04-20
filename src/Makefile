@@ -12,20 +12,22 @@ CXXFLAGS += -m64
 LIBS  = -lWs2_32
 LIBS += -lwinmm
 
-OBJ_FILES  = main.o
-OBJ_FILES += SocketThread.o
-OBJ_FILES += SocketThread_priv.o
-OBJ_FILES += WSAStarter.o
-OBJ_FILES += AddrInfo.o
-OBJ_FILES += SocketListener.o
-OBJ_FILES += SocketScope.o
+OBJ_FILES  = a.o
+OBJ_FILES += b.o
+OBJ_FILES += c.o
+OBJ_FILES += d.o
+OBJ_FILES += e.o
+OBJ_FILES += f.o
+OBJ_FILES += g.o
+OBJ_FILES += h.o
 
 all:
-	c++ -c SocketScope.cpp -o SocketScope.o ${CXXFLAGS}
-	c++ -c SocketListener.cpp -o SocketListener.o ${CXXFLAGS}
-	c++ -c AddrInfo.cpp -o AddrInfo.o ${CXXFLAGS}
-	c++ -c WSAStarter.cpp -o WSAStarter.o ${CXXFLAGS}
-	c++ -c SocketThread.cpp -o SocketThread.o ${CXXFLAGS}
-	c++ -c SocketThread_priv.cpp -o SocketThread_priv.o ${CXXFLAGS}
-	c++ -c main.cpp -o main.o ${CXXFLAGS}
+	c++ -c Console.cpp -o h.o ${CXXFLAGS}
+	c++ -c SocketScope.cpp -o g.o ${CXXFLAGS}
+	c++ -c SocketListener.cpp -o f.o ${CXXFLAGS}
+	c++ -c AddrInfo.cpp -o e.o ${CXXFLAGS}
+	c++ -c WSAStarter.cpp -o d.o ${CXXFLAGS}
+	c++ -c SocketThread.cpp -o c.o ${CXXFLAGS}
+	c++ -c SocketThread_priv.cpp -o b.o ${CXXFLAGS}
+	c++ -c main.cpp -o a.o ${CXXFLAGS}
 	c++ ${OBJ_FILES} -o remote-audiorec.exe ${CXXFLAGS} ${LIBS}

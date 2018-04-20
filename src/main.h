@@ -17,4 +17,7 @@
 #define WM_START_SOCKET_THREAD  (WM_USER + 3u)
 #define WM_STOP_SOCKET_THREAD   (WM_USER + 4u)
 
+class Console;
+extern Console *console;
+
 #endif

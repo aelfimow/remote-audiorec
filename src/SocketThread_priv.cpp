@@ -12,12 +12,10 @@
 #include "AddrInfo.h"
 #include "SocketListener.h"
 #include "SocketScope.h"
+#include "Console.h"
 
 
 #define MY_PORT         "50000"
-
-
-extern void EditPrintf(HWND hwndEdit, const TCHAR *szFormat, ...);
 
 
 SocketThread_priv::SocketThread_priv(const struct ThreadParams &params) :
@@ -56,24 +54,24 @@ DWORD WINAPI SocketThread_priv::threadFunc(LPVOID pvoid)
 
     SetEvent(pInst->hEvent);
 
-    EditPrintf(pInst->hwndEdit, TEXT("Thread started"));
+    *console << TEXT("Thread started") << Console::eol;
 
     while (true)
     {
-        EditPrintf(pInst->hwndEdit, TEXT("Waiting for commands"));
+        *console << TEXT("Waiting for commands") << Console::eol;
 
         WSAStarter wsa;
 
         if (wsa.is_error())
         {
-            EditPrintf(pInst->hwndEdit, TEXT("WSAStarter failed with error\n"));
+            *console << TEXT("WSAStarter failed with error") << Console::eol;
             break;
         }
 
         AddrInfo ai { MY_PORT };
         if (ai.is_error())
         {
-            EditPrintf(pInst->hwndEdit, TEXT("AddrInfo failed"));
+            *console << TEXT("AddrInfo failed") << Console::eol;
             break;
         }
 
@@ -81,7 +79,7 @@ DWORD WINAPI SocketThread_priv::threadFunc(LPVOID pvoid)
 
         if (sockListener.is_error())
         {
-            EditPrintf(pInst->hwndEdit, TEXT("Socket listener creation failed"));
+            *console << TEXT("Socket listener creation failed") << Console::eol;
             break;
         }
 
@@ -89,7 +87,7 @@ DWORD WINAPI SocketThread_priv::threadFunc(LPVOID pvoid)
 
         if (sockListener.is_error())
         {
-            EditPrintf(pInst->hwndEdit, TEXT("Socket listening failed"));
+            *console << TEXT("Socket listening failed") << Console::eol;
             break;
         }
 
@@ -99,7 +97,7 @@ DWORD WINAPI SocketThread_priv::threadFunc(LPVOID pvoid)
 
         if (clientSock.is_error())
         {
-            EditPrintf(pInst->hwndEdit, TEXT("SocketScope creation failed"));
+            *console << TEXT("SocketScope creation failed") << Console::eol;
             break;
         }
 
@@ -107,7 +105,7 @@ DWORD WINAPI SocketThread_priv::threadFunc(LPVOID pvoid)
 
         if (clientSock.is_error())
         {
-            EditPrintf(pInst->hwndEdit, TEXT("SocketScope recv failed"));
+            *console << TEXT("SocketScope recv failed") << Console::eol;
             break;
         }
 
@@ -122,7 +120,7 @@ DWORD WINAPI SocketThread_priv::threadFunc(LPVOID pvoid)
         }
     }
 
-    EditPrintf(pInst->hwndEdit, TEXT("Thread exit"));
+    *console << TEXT("Thread exit") << Console::eol;
 
     ExitThread(0);
 

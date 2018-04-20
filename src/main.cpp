@@ -5,35 +5,13 @@
 #include "main.h"
 #include "SocketThread_param.h"
 #include "SocketThread.h"
+#include "Console.h"
 
 
 #define INP_BUFFER_SIZE (3 * 192000)
 
 
-void EditPrintf(HWND hwndEdit, const TCHAR *szFormat, ...)
-{
-    std::vector<TCHAR> szBuffer(1024);
-    va_list pArgList;
-
-    va_start(pArgList, szFormat);
-    wvsprintf(&szBuffer[0], szFormat, pArgList);
-    va_end(pArgList);
-
-    if (hwndEdit == NULL)
-    {
-        return;
-    }
-
-    SendMessage(hwndEdit, EM_SETSEL, (WPARAM)-1, (WPARAM)-1);
-    SendMessage(hwndEdit, EM_REPLACESEL, FALSE, (LPARAM)szBuffer.data());
-    SendMessage(hwndEdit, EM_SCROLLCARET, 0, 0);
-
-    TCHAR szEndLine[] = TEXT("\r\n");
-    SendMessage(hwndEdit, EM_SETSEL, (WPARAM)-1, (WPARAM)-1);
-    SendMessage(hwndEdit, EM_REPLACESEL, FALSE, (LPARAM)&szEndLine[0]);
-    SendMessage(hwndEdit, EM_SCROLLCARET, 0, 0);
-}
-
+Console *console = nullptr;
 
 static std::vector<BYTE> buffer1(INP_BUFFER_SIZE);
 static std::vector<BYTE> buffer2(INP_BUFFER_SIZE);
@@ -145,7 +123,6 @@ static HMENU AppCustomMenu(void)
 static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     static SocketThread *pSocketThread = nullptr;
-    static HWND hwndEdit = NULL;
     static HANDLE hFileOut = INVALID_HANDLE_VALUE;
     static TCHAR szFileName[512];
     static DWORD fileCount = 0;
@@ -159,31 +136,16 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
     {
         case WM_CREATE:
             {
-                hwndEdit = CreateWindow(
-                        TEXT("edit"),
-                        NULL,
-                        (WS_CHILD | WS_VISIBLE | WS_HSCROLL | WS_VSCROLL | WS_BORDER | \
-                         ES_READONLY | ES_LEFT | ES_MULTILINE | ES_AUTOHSCROLL | ES_AUTOVSCROLL),
-                        0,
-                        0,
-                        0,
-                        0,
-                        hwnd,
-                        (HMENU)ID_EDIT,
-                        ((LPCREATESTRUCT)lParam)->hInstance,
-                        NULL);
+                console = new Console(hwnd, ((LPCREATESTRUCT)lParam)->hInstance);
 
-                if (NULL == hwndEdit)
+                if (console->is_error())
                 {
-                    (void)MessageBox(NULL, TEXT("Error: hwndEdit == NULL."), TEXT("WndProc"), MB_ICONERROR);
+                    (void)MessageBox(NULL, TEXT("Error creating console"), TEXT("WndProc"), MB_ICONERROR);
                 }
-
-                // Set limit of text to max.
-                SendMessage(hwndEdit, EM_LIMITTEXT, 0, 0L);
 
                 struct ThreadParams params;
                 params.hwnd = hwnd;
-                params.hwndEdit = hwndEdit;
+                params.hwndEdit = nullptr;
                 params.event = CreateEvent(NULL, FALSE, FALSE, NULL);
 
                 pSocketThread = new SocketThread { params };
@@ -194,25 +156,19 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 
         case WM_SETFOCUS:
             {
-                if (NULL != hwndEdit)
-                {
-                    SetFocus(hwndEdit);
-                }
+                console->SetFocus();
                 return 0;
             }
 
         case WM_SIZE:
             {
-                if (NULL != hwndEdit)
-                {
-                    MoveWindow(hwndEdit, 0, 0, LOWORD(lParam), HIWORD(lParam), TRUE);
-                }
+                console->MoveWindow(0, 0, LOWORD(lParam), HIWORD(lParam));
                 return 0;
             }
 
         case WM_USER_START:
             {
-                EditPrintf(hwndEdit, TEXT("Command: Start"));
+                *console << TEXT("Command: Start") << Console::eol;
 
                 bStopRecord = FALSE;
                 dwAudioDataCount = 0;
@@ -235,7 +191,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 
                 if (MMSYSERR_NOERROR != waveInOpen_result)
                 {
-                    EditPrintf(hwndEdit, TEXT("Error: waveInOpen failed"));
+                    *console << TEXT("Error: waveInOpen failed") << Console::eol;
                     return 0;
                 }
 
@@ -256,7 +212,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 
                 if (hFileOut == INVALID_HANDLE_VALUE)
                 {
-                    EditPrintf(hwndEdit, TEXT("Error: File not created: %s"), szFileName);
+                    *console << TEXT("Error: File not created: ") << szFileName << Console::eol;
                 }
 
                 WaveHdr1.lpData = (LPSTR)buffer1.data();
@@ -284,7 +240,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 
         case WM_USER_STOP:
             {
-                EditPrintf(hwndEdit, TEXT("Command: Stop"));
+                *console << TEXT("Command: Stop") << Console::eol;
                 bStopRecord = TRUE;
                 waveInReset(hWaveIn);
                 return 0;
@@ -295,7 +251,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                 waveInAddBuffer(hWaveIn, &WaveHdr1, sizeof(WAVEHDR));
                 waveInAddBuffer(hWaveIn, &WaveHdr2, sizeof(WAVEHDR));
                 waveInStart(hWaveIn);
-                EditPrintf(hwndEdit, TEXT("Audio input opened"));
+                *console << TEXT("Audio input opened") << Console::eol;
                 return 0;
             }
 
@@ -305,12 +261,12 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 
                 if (NULL == pWaveHdr)
                 {
-                    EditPrintf(hwndEdit, TEXT("Error: pWaveHdr is invalid"));
+                    *console << TEXT("Error: pWaveHdr is invalid") << Console::eol;
                     return 0;
                 }
 
                 ++dwAudioDataCount;
-                EditPrintf(hwndEdit, TEXT("%d: Audio samples: %d"), dwAudioDataCount, pWaveHdr->dwBytesRecorded);
+                *console << dwAudioDataCount << TEXT(": Audio samples: ") << pWaveHdr->dwBytesRecorded << Console::eol;
 
                 if (0 != pWaveHdr->dwBytesRecorded)
                 {
@@ -337,7 +293,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
             {
                 waveInUnprepareHeader(hWaveIn, &WaveHdr1, sizeof(WAVEHDR));
                 waveInUnprepareHeader(hWaveIn, &WaveHdr2, sizeof(WAVEHDR));
-                EditPrintf(hwndEdit, TEXT("Audio input closed"));
+                *console << TEXT("Audio input closed") << Console::eol;
                 CloseFileHandle(&hFileOut);
                 return 0;
             }
@@ -348,29 +304,29 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 
                 if (IDM_APP_START == cmd)
                 {
-                    EditPrintf(hwndEdit, TEXT("Menu command: Start"));
+                    *console << TEXT("Menu command: Start") << Console::eol;
                     PostMessage(hwnd, WM_USER_START, 0, 0);
                 }
 
                 if (IDM_APP_STOP == cmd)
                 {
-                    EditPrintf(hwndEdit, TEXT("Menu command: Stop"));
+                    *console << TEXT("Menu command: Stop") << Console::eol;
                     PostMessage(hwnd, WM_USER_STOP, 0, 0);
                 }
 
                 if (IDM_APP_START_SOCKET_THREAD == cmd)
                 {
-                    EditPrintf(hwndEdit, TEXT("Menu command: Start socket thread"));
+                    *console << TEXT("Menu command: Start socket thread") << Console::eol;
                 }
 
                 if (IDM_APP_STOP_SOCKET_THREAD == cmd)
                 {
-                    EditPrintf(hwndEdit, TEXT("Menu command: Stop socket thread"));
+                    *console << TEXT("Menu command: Stop socket thread") << Console::eol;
                 }
 
                 if (IDM_APP_EXIT == cmd)
                 {
-                    EditPrintf(hwndEdit, TEXT("Menu command: Exit"));
+                    *console << TEXT("Menu command: Exit") << Console::eol;
                     bStopRecord = TRUE;
                     waveInReset(hWaveIn);
                     PostMessage(hwnd, WM_CLOSE, 0, 0);

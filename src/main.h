@@ -18,6 +18,20 @@
 #define WM_STOP_SOCKET_THREAD   (WM_USER + 4u)
 
 class Console;
+class SocketThread;
+
 extern Console *console;
+
+struct GlobalData
+{
+    SocketThread *pSocketThread;
+    HANDLE hFileOut;
+    TCHAR szFileName[512];
+    DWORD fileCount;
+    WAVEFORMATEX waveform;
+    HWAVEIN hWaveIn;
+    BOOL bStopRecord;
+    DWORD dwAudioDataCount;
+};
 
 #endif

@@ -11,6 +11,18 @@
 #define INP_BUFFER_SIZE (3 * 192000)
 
 
+static struct GlobalData G =
+{
+    nullptr,
+    INVALID_HANDLE_VALUE,
+    { },
+    0,
+    { },
+    nullptr,
+    FALSE,
+    0
+};
+
 Console *console = nullptr;
 
 static std::vector<BYTE> buffer1(INP_BUFFER_SIZE);
@@ -122,16 +134,6 @@ static HMENU AppCustomMenu(void)
 
 static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    static SocketThread *pSocketThread = nullptr;
-    static HANDLE hFileOut = INVALID_HANDLE_VALUE;
-    static TCHAR szFileName[512];
-    static DWORD fileCount = 0;
-
-    static WAVEFORMATEX waveform;
-    static HWAVEIN hWaveIn = NULL;
-    static BOOL bStopRecord = FALSE;
-    static DWORD dwAudioDataCount = 0;
-
     switch (message)
     {
         case WM_CREATE:
@@ -148,8 +150,8 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                 params.hwndEdit = nullptr;
                 params.event = CreateEvent(NULL, FALSE, FALSE, NULL);
 
-                pSocketThread = new SocketThread { params };
-                pSocketThread->start();
+                G.pSocketThread = new SocketThread { params };
+                G.pSocketThread->start();
 
                 return 0;
             }
@@ -170,21 +172,21 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
             {
                 *console << TEXT("Command: Start") << Console::eol;
 
-                bStopRecord = FALSE;
-                dwAudioDataCount = 0;
+                G.bStopRecord = FALSE;
+                G.dwAudioDataCount = 0;
 
-                waveform.wFormatTag = WAVE_FORMAT_PCM;
-                waveform.nChannels = 1;
-                waveform.nSamplesPerSec = 192000;
-                waveform.nAvgBytesPerSec = (3 * 192000);
-                waveform.nBlockAlign = 3;
-                waveform.wBitsPerSample = 24;
-                waveform.cbSize = 0;
+                G.waveform.wFormatTag = WAVE_FORMAT_PCM;
+                G.waveform.nChannels = 1;
+                G.waveform.nSamplesPerSec = 192000;
+                G.waveform.nAvgBytesPerSec = (3 * 192000);
+                G.waveform.nBlockAlign = 3;
+                G.waveform.wBitsPerSample = 24;
+                G.waveform.cbSize = 0;
 
                 auto waveInOpen_result = waveInOpen(
-                            &hWaveIn,
+                            &G.hWaveIn,
                             WAVE_MAPPER,
-                            &waveform,
+                            &G.waveform,
                             (DWORD_PTR)hwnd,
                             0,
                             CALLBACK_WINDOW);
@@ -195,12 +197,12 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                     return 0;
                 }
 
-                CloseFileHandle(&hFileOut);
+                CloseFileHandle(&G.hFileOut);
 
-                wsprintf(szFileName, "audio-%d.raw", fileCount);
+                wsprintf(G.szFileName, "audio-%d.raw", G.fileCount);
 
-                hFileOut = CreateFile(
-                        szFileName,
+                G.hFileOut = CreateFile(
+                        G.szFileName,
                         GENERIC_WRITE,
                         FILE_SHARE_WRITE,
                         NULL,
@@ -208,11 +210,11 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                         FILE_ATTRIBUTE_NORMAL,
                         NULL);
 
-                ++fileCount;
+                ++G.fileCount;
 
-                if (hFileOut == INVALID_HANDLE_VALUE)
+                if (G.hFileOut == INVALID_HANDLE_VALUE)
                 {
-                    *console << TEXT("Error: File not created: ") << szFileName << Console::eol;
+                    *console << TEXT("Error: File not created: ") << G.szFileName << Console::eol;
                 }
 
                 WaveHdr1.lpData = (LPSTR)buffer1.data();
@@ -223,7 +225,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                 WaveHdr1.dwLoops = 1;
                 WaveHdr1.lpNext = NULL;
                 WaveHdr1.reserved = 0;
-                waveInPrepareHeader(hWaveIn, &WaveHdr1, sizeof(WAVEHDR));
+                waveInPrepareHeader(G.hWaveIn, &WaveHdr1, sizeof(WAVEHDR));
 
                 WaveHdr2.lpData = (LPSTR)buffer2.data();
                 WaveHdr2.dwBufferLength = buffer2.size();
@@ -233,7 +235,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                 WaveHdr2.dwLoops = 1;
                 WaveHdr2.lpNext = NULL;
                 WaveHdr2.reserved = 0;
-                waveInPrepareHeader(hWaveIn, &WaveHdr2, sizeof(WAVEHDR));
+                waveInPrepareHeader(G.hWaveIn, &WaveHdr2, sizeof(WAVEHDR));
 
                 return 0;
             }
@@ -241,16 +243,16 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
         case WM_USER_STOP:
             {
                 *console << TEXT("Command: Stop") << Console::eol;
-                bStopRecord = TRUE;
-                waveInReset(hWaveIn);
+                G.bStopRecord = TRUE;
+                waveInReset(G.hWaveIn);
                 return 0;
             }
 
         case MM_WIM_OPEN:
             {
-                waveInAddBuffer(hWaveIn, &WaveHdr1, sizeof(WAVEHDR));
-                waveInAddBuffer(hWaveIn, &WaveHdr2, sizeof(WAVEHDR));
-                waveInStart(hWaveIn);
+                waveInAddBuffer(G.hWaveIn, &WaveHdr1, sizeof(WAVEHDR));
+                waveInAddBuffer(G.hWaveIn, &WaveHdr2, sizeof(WAVEHDR));
+                waveInStart(G.hWaveIn);
                 *console << TEXT("Audio input opened") << Console::eol;
                 return 0;
             }
@@ -265,36 +267,36 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                     return 0;
                 }
 
-                ++dwAudioDataCount;
-                *console << dwAudioDataCount << TEXT(": Audio samples: ") << pWaveHdr->dwBytesRecorded << Console::eol;
+                ++G.dwAudioDataCount;
+                *console << G.dwAudioDataCount << TEXT(": Audio samples: ") << pWaveHdr->dwBytesRecorded << Console::eol;
 
                 if (0 != pWaveHdr->dwBytesRecorded)
                 {
-                    if (hFileOut != INVALID_HANDLE_VALUE)
+                    if (G.hFileOut != INVALID_HANDLE_VALUE)
                     {
                         DWORD WrittenResult = 0u;
-                        WriteFile(hFileOut, pWaveHdr->lpData, pWaveHdr->dwBytesRecorded, &WrittenResult, NULL);
-                        (void)FlushFileBuffers(hFileOut);
+                        WriteFile(G.hFileOut, pWaveHdr->lpData, pWaveHdr->dwBytesRecorded, &WrittenResult, NULL);
+                        (void)FlushFileBuffers(G.hFileOut);
                     }
                 }
 
-                if (FALSE != bStopRecord)
+                if (FALSE != G.bStopRecord)
                 {
-                    waveInClose(hWaveIn);
+                    waveInClose(G.hWaveIn);
                     return 0;
                 }
 
-                waveInAddBuffer(hWaveIn, pWaveHdr, sizeof(WAVEHDR));
+                waveInAddBuffer(G.hWaveIn, pWaveHdr, sizeof(WAVEHDR));
 
                 return 0;
             }
 
         case MM_WIM_CLOSE:
             {
-                waveInUnprepareHeader(hWaveIn, &WaveHdr1, sizeof(WAVEHDR));
-                waveInUnprepareHeader(hWaveIn, &WaveHdr2, sizeof(WAVEHDR));
+                waveInUnprepareHeader(G.hWaveIn, &WaveHdr1, sizeof(WAVEHDR));
+                waveInUnprepareHeader(G.hWaveIn, &WaveHdr2, sizeof(WAVEHDR));
                 *console << TEXT("Audio input closed") << Console::eol;
-                CloseFileHandle(&hFileOut);
+                CloseFileHandle(&G.hFileOut);
                 return 0;
             }
 
@@ -327,8 +329,8 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                 if (IDM_APP_EXIT == cmd)
                 {
                     *console << TEXT("Menu command: Exit") << Console::eol;
-                    bStopRecord = TRUE;
-                    waveInReset(hWaveIn);
+                    G.bStopRecord = TRUE;
+                    waveInReset(G.hWaveIn);
                     PostMessage(hwnd, WM_CLOSE, 0, 0);
                 }
 
@@ -337,10 +339,10 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 
         case WM_DESTROY:
             {
-                bStopRecord = TRUE;
-                waveInReset(hWaveIn);
-                CloseFileHandle(&hFileOut);
-                delete pSocketThread;
+                G.bStopRecord = TRUE;
+                waveInReset(G.hWaveIn);
+                CloseFileHandle(&G.hFileOut);
+                delete G.pSocketThread;
                 PostQuitMessage(0);
                 return 0;
             }

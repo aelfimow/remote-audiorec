@@ -20,8 +20,10 @@ OBJ_FILES += e.o
 OBJ_FILES += f.o
 OBJ_FILES += g.o
 OBJ_FILES += h.o
+OBJ_FILES += i.o
 
 all:
+	c++ -c WMCreateHandler.cpp -o i.o ${CXXFLAGS}
 	c++ -c Console.cpp -o h.o ${CXXFLAGS}
 	c++ -c SocketScope.cpp -o g.o ${CXXFLAGS}
 	c++ -c SocketListener.cpp -o f.o ${CXXFLAGS}

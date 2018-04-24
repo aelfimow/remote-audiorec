@@ -11,7 +11,7 @@
 #define INP_BUFFER_SIZE (3 * 192000)
 
 
-static struct GlobalData G =
+struct GlobalData G =
 {
     nullptr,
     INVALID_HANDLE_VALUE,

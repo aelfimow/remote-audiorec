@@ -34,4 +34,6 @@ struct GlobalData
     DWORD dwAudioDataCount;
 };
 
+extern struct GlobalData G;
+
 #endif

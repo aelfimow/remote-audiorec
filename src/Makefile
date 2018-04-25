@@ -22,8 +22,10 @@ OBJ_FILES += g.o
 OBJ_FILES += h.o
 OBJ_FILES += i.o
 OBJ_FILES += j.o
+OBJ_FILES += k.o
 
 all:
+	c++ -c WMSizeHandler.cpp -o k.o ${CXXFLAGS}
 	c++ -c WMSetFocusHandler.cpp -o j.o ${CXXFLAGS}
 	c++ -c WMCreateHandler.cpp -o i.o ${CXXFLAGS}
 	c++ -c Console.cpp -o h.o ${CXXFLAGS}

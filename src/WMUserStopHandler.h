@@ -1,7 +1,7 @@
-#ifdef WM_SIZE_HANDLER_H
+#ifdef WM_USER_STOP_HANDLER_H
 #error Already included
 #else
-#define WM_SIZE_HANDLER_H
+#define WM_USER_STOP_HANDLER_H
 
 class WMUserStopHandler: public WndProcHandler
 {

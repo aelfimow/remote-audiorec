@@ -7,7 +7,7 @@
 #include "Console.h"
 
 
-WMUserStart::WMUserStart() :
+WMUserStartHandler::WMUserStartHandler() :
     WndProcHandler {},
     buffer1(INP_BUFFER_SIZE),
     buffer2(INP_BUFFER_SIZE),
@@ -16,11 +16,11 @@ WMUserStart::WMUserStart() :
 {
 }
 
-WMUserStart::~WMUserStart()
+WMUserStartHandler::~WMUserStartHandler()
 {
 }
 
-LRESULT WMUserStart::operator()(HWND hwnd, WPARAM wParam, LPARAM lParam)
+LRESULT WMUserStartHandler::operator()(HWND hwnd, WPARAM wParam, LPARAM lParam)
 {
     wParam = wParam;
     lParam = lParam;

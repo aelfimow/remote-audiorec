@@ -1,11 +1,16 @@
 #include <windows.h>
 #include <stdlib.h>
 #include <vector>
+#include <map>
 
 #include "main.h"
 #include "SocketThread_param.h"
 #include "SocketThread.h"
 #include "Console.h"
+#include "WndProcHandler.h"
+#include "WMSizeHandler.h"
+#include "WMSetFocusHandler.h"
+#include "WMCreateHandler.h"
 
 
 #define INP_BUFFER_SIZE (3 * 192000)
@@ -24,6 +29,12 @@ struct GlobalData G =
 };
 
 Console *console = nullptr;
+
+static WMSizeHandler     WMSize;
+static WMSetFocusHandler WMSetFocus;
+static WMCreateHandler   WMCreate;
+
+static std::map<UINT, WndProcHandler&> WndProcMap;
 
 static std::vector<BYTE> buffer1(INP_BUFFER_SIZE);
 static std::vector<BYTE> buffer2(INP_BUFFER_SIZE);

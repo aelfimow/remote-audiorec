@@ -17,6 +17,8 @@
 #define WM_START_SOCKET_THREAD  (WM_USER + 3u)
 #define WM_STOP_SOCKET_THREAD   (WM_USER + 4u)
 
+#define INP_BUFFER_SIZE         (3 * 192000)
+
 class Console;
 class SocketThread;
 

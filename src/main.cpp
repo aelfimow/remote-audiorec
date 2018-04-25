@@ -11,9 +11,8 @@
 #include "WMSizeHandler.h"
 #include "WMSetFocusHandler.h"
 #include "WMCreateHandler.h"
-
-
-#define INP_BUFFER_SIZE (3 * 192000)
+#include "WMUserStartHandler.h"
+#include "WMUserStopHandler.h"
 
 
 struct GlobalData G =
@@ -30,9 +29,11 @@ struct GlobalData G =
 
 Console *console = nullptr;
 
-static WMSizeHandler     WMSize;
-static WMSetFocusHandler WMSetFocus;
-static WMCreateHandler   WMCreate;
+static WMSizeHandler      WMSize;
+static WMSetFocusHandler  WMSetFocus;
+static WMCreateHandler    WMCreate;
+static WMUserStartHandler WMUserStart;
+static WMUserStopHandler  WMUserStop;
 
 static std::map<UINT, WndProcHandler*> WndProcMap;
 
@@ -54,9 +55,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
     hPrevInstance = hPrevInstance;
     szCmdLine = szCmdLine;
 
-    WndProcMap[WM_CREATE]   = &WMCreate;
-    WndProcMap[WM_SETFOCUS] = &WMSetFocus;
-    WndProcMap[WM_SIZE]     = &WMSize;
+    WndProcMap[WM_CREATE]     = &WMCreate;
+    WndProcMap[WM_SETFOCUS]   = &WMSetFocus;
+    WndProcMap[WM_SIZE]       = &WMSize;
+    WndProcMap[WM_USER_START] = &WMUserStart;
+    WndProcMap[WM_USER_STOP]  = &WMUserStop;
 
     wndclass.style = (CS_HREDRAW | CS_VREDRAW);
     wndclass.lpfnWndProc = &WndProc;

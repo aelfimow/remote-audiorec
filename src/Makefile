@@ -37,3 +37,6 @@ all:
 	c++ -c SocketThread_priv.cpp -o b.o ${CXXFLAGS}
 	c++ -c main.cpp -o a.o ${CXXFLAGS}
 	c++ ${OBJ_FILES} -o remote-audiorec.exe ${CXXFLAGS} ${LIBS}
+
+main:
+	c++ -c main.cpp -o a.o ${CXXFLAGS}

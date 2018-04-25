@@ -34,7 +34,7 @@ static WMSizeHandler     WMSize;
 static WMSetFocusHandler WMSetFocus;
 static WMCreateHandler   WMCreate;
 
-static std::map<UINT, WndProcHandler&> WndProcMap;
+static std::map<UINT, WndProcHandler*> WndProcMap;
 
 static std::vector<BYTE> buffer1(INP_BUFFER_SIZE);
 static std::vector<BYTE> buffer2(INP_BUFFER_SIZE);
@@ -53,6 +53,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 
     hPrevInstance = hPrevInstance;
     szCmdLine = szCmdLine;
+
+    WndProcMap[WM_CREATE]   = &WMCreate;
+    WndProcMap[WM_SETFOCUS] = &WMSetFocus;
+    WndProcMap[WM_SIZE]     = &WMSize;
 
     wndclass.style = (CS_HREDRAW | CS_VREDRAW);
     wndclass.lpfnWndProc = &WndProc;

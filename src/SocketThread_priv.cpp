@@ -101,22 +101,35 @@ DWORD WINAPI SocketThread_priv::threadFunc(LPVOID pvoid)
             break;
         }
 
-        const std::string cmd = clientSock.recv();
+        while (true)
+        {
+            const std::string cmd = clientSock.recv();
+
+            if (clientSock.is_error())
+            {
+                break;
+            }
+
+            if (0 == cmd.length())
+            {
+                break;
+            }
+
+            if (cmd == "start")
+            {
+                (void)PostMessage(pInst->hwnd, WM_USER_START, 0, 0);
+            }
+
+            if (cmd == "stop")
+            {
+                (void)PostMessage(pInst->hwnd, WM_USER_STOP, 0, 0);
+            }
+        }
 
         if (clientSock.is_error())
         {
             *console << TEXT("SocketScope recv failed") << Console::eol;
             break;
-        }
-
-        if (cmd == "start")
-        {
-            (void)PostMessage(pInst->hwnd, WM_USER_START, 0, 0);
-        }
-
-        if (cmd == "stop")
-        {
-            (void)PostMessage(pInst->hwnd, WM_USER_STOP, 0, 0);
         }
     }
 

@@ -13,6 +13,10 @@
 #include "WMCreateHandler.h"
 #include "WMUserStartHandler.h"
 #include "WMUserStopHandler.h"
+#include "MMWimOpenHandler.h"
+#include "MMWimDataHandler.h"
+#include "MMWimCloseHandler.h"
+#include "WMCommandHandler.h"
 
 
 struct GlobalData G =
@@ -34,6 +38,10 @@ static WMSetFocusHandler  WMSetFocus;
 static WMCreateHandler    WMCreate;
 static WMUserStartHandler WMUserStart;
 static WMUserStopHandler  WMUserStop;
+static MMWimOpenHandler   MMWimOpen { WMUserStart };
+static MMWimDataHandler   MMWimData;
+static MMWimCloseHandler  MMWimClose { WMUserStart };
+static WMCommandHandler   WMCommand;
 
 static std::map<UINT, WndProcHandler*> WndProcMap;
 
@@ -60,6 +68,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
     WndProcMap[WM_SIZE]       = &WMSize;
     WndProcMap[WM_USER_START] = &WMUserStart;
     WndProcMap[WM_USER_STOP]  = &WMUserStop;
+    WndProcMap[MM_WIM_OPEN]   = &MMWimOpen;
+    WndProcMap[MM_WIM_DATA]   = &MMWimData;
+    WndProcMap[MM_WIM_CLOSE]  = &MMWimClose;
+    WndProcMap[WM_COMMAND]    = &WMCommand;
 
     wndclass.style = (CS_HREDRAW | CS_VREDRAW);
     wndclass.lpfnWndProc = &WndProc;

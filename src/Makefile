@@ -29,8 +29,10 @@ OBJ_FILES += n.o
 OBJ_FILES += o.o
 OBJ_FILES += p.o
 OBJ_FILES += q.o
+OBJ_FILES += r.o
 
 all:
+	c++ -c WMDestroyHandler.cpp -o r.o ${CXXFLAGS}
 	c++ -c WMCommandHandler.cpp -o q.o ${CXXFLAGS}
 	c++ -c MMWimCloseHandler.cpp -o p.o ${CXXFLAGS}
 	c++ -c MMWimDataHandler.cpp -o o.o ${CXXFLAGS}

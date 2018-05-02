@@ -54,3 +54,4 @@ all:
 
 main:
 	c++ -c main.cpp -o a.o ${CXXFLAGS}
+	c++ ${OBJ_FILES} -o remote-audiorec.exe ${CXXFLAGS} ${LIBS}

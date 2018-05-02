@@ -27,8 +27,10 @@ OBJ_FILES += l.o
 OBJ_FILES += m.o
 OBJ_FILES += n.o
 OBJ_FILES += o.o
+OBJ_FILES += p.o
 
 all:
+	c++ -c MMWimCloseHandler.cpp -o p.o ${CXXFLAGS}
 	c++ -c MMWimDataHandler.cpp -o o.o ${CXXFLAGS}
 	c++ -c MMWimOpenHandler.cpp -o n.o ${CXXFLAGS}
 	c++ -c WMUserStopHandler.cpp -o m.o ${CXXFLAGS}

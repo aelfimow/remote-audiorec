@@ -104,3 +104,9 @@ void WMUserStartHandler::addAudioBuffer()
     waveInAddBuffer(G.hWaveIn, &WaveHdr1, sizeof(WAVEHDR));
     waveInAddBuffer(G.hWaveIn, &WaveHdr2, sizeof(WAVEHDR));
 }
+
+void WMUserStartHandler::removeAudioBuffer()
+{
+    waveInUnprepareHeader(G.hWaveIn, &WaveHdr1, sizeof(WAVEHDR));
+    waveInUnprepareHeader(G.hWaveIn, &WaveHdr2, sizeof(WAVEHDR));
+}

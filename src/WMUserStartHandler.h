@@ -12,6 +12,7 @@ class WMUserStartHandler: public WndProcHandler
         LRESULT operator()(HWND hwnd, WPARAM wParam, LPARAM lParam) override;
 
         void addAudioBuffer();
+        void removeAudioBuffer();
 
     private:
         std::vector<BYTE> buffer1;

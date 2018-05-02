@@ -17,6 +17,7 @@
 #include "MMWimDataHandler.h"
 #include "MMWimCloseHandler.h"
 #include "WMCommandHandler.h"
+#include "WMDestroyHandler.h"
 
 
 struct GlobalData G =
@@ -42,6 +43,7 @@ static MMWimOpenHandler   MMWimOpen { WMUserStart };
 static MMWimDataHandler   MMWimData;
 static MMWimCloseHandler  MMWimClose { WMUserStart };
 static WMCommandHandler   WMCommand;
+static WMDestroyHandler   WMDestroy;
 
 static std::map<UINT, WndProcHandler*> WndProcMap;
 
@@ -72,6 +74,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
     WndProcMap[MM_WIM_DATA]   = &MMWimData;
     WndProcMap[MM_WIM_CLOSE]  = &MMWimClose;
     WndProcMap[WM_COMMAND]    = &WMCommand;
+    WndProcMap[WM_DESTROY]    = &WMDestroy;
 
     wndclass.style = (CS_HREDRAW | CS_VREDRAW);
     wndclass.lpfnWndProc = &WndProc;

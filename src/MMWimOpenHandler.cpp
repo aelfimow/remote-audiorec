@@ -1,13 +1,16 @@
 #include <Windows.h>
+#include <vector>
 
 #include "WndProcHandler.h"
+#include "WMUserStartHandler.h"
 #include "MMWimOpenHandler.h"
 #include "main.h"
 #include "Console.h"
 
 
-MMWimOpenHandler::MMWimOpenHandler() :
-    WndProcHandler {}
+MMWimOpenHandler::MMWimOpenHandler(WMUserStartHandler &userStartHandler) :
+    WndProcHandler {},
+    m_UserStartHandler { userStartHandler }
 {
 }
 
@@ -21,8 +24,8 @@ LRESULT MMWimOpenHandler::operator()(HWND hwnd, WPARAM wParam, LPARAM lParam)
     wParam = wParam;
     lParam = lParam;
 
-    waveInAddBuffer(G.hWaveIn, &WaveHdr1, sizeof(WAVEHDR));
-    waveInAddBuffer(G.hWaveIn, &WaveHdr2, sizeof(WAVEHDR));
+    m_UserStartHandler.addAudioBuffer();
+
     waveInStart(G.hWaveIn);
 
     *console << TEXT("Audio input opened") << Console::eol;

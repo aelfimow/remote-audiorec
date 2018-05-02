@@ -56,7 +56,5 @@ LRESULT WMCommandHandler::operator()(HWND hwnd, WPARAM wParam, LPARAM lParam)
         return 0;
     }
 
-    *console << TEXT("Menu command: Unknown") << Console::eol;
-
     return 0;
 }

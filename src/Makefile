@@ -30,8 +30,10 @@ OBJ_FILES += o.o
 OBJ_FILES += p.o
 OBJ_FILES += q.o
 OBJ_FILES += r.o
+OBJ_FILES += s.o
 
 all:
+	c++ -c MainWindow.cpp -o s.o ${CXXFLAGS}
 	c++ -c WMDestroyHandler.cpp -o r.o ${CXXFLAGS}
 	c++ -c WMCommandHandler.cpp -o q.o ${CXXFLAGS}
 	c++ -c MMWimCloseHandler.cpp -o p.o ${CXXFLAGS}

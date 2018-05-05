@@ -11,11 +11,11 @@ class MainWindow
         ~MainWindow();
 
     public:
-        static void Create(HINSTANCE hInstance);
+        static void Create(HINSTANCE hInstance, int iCmdShow);
         static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
     private:
-        explicit MainWindow(HINSTANCE hInstance);
+        explicit MainWindow(HINSTANCE hInstance, int iCmdShow);
 
         HMENU CreateCustomMenu();
         void MessageBox_Error(const TCHAR *errStr);

@@ -22,7 +22,7 @@ MainWindow *MainWindow::Inst = nullptr;
 const TCHAR MainWindow::MainWindowName[] = TEXT("remote-audiorec");
 
 
-MainWindow::MainWindow(HINSTANCE hInstance) :
+MainWindow::MainWindow(HINSTANCE hInstance, int iCmdShow) :
     m_WndProcMap { },
     m_Wndclass { },
     m_hWindow { nullptr }
@@ -77,6 +77,16 @@ MainWindow::MainWindow(HINSTANCE hInstance) :
         MessageBox_Error(TEXT("Error in CreateWindow"));
         return;
     }
+
+    ShowWindow(m_hWindow, iCmdShow);
+
+    auto UpdateWindowResult = ::UpdateWindow(m_hWindow);
+
+    if (UpdateWindowResult == FALSE)
+    {
+        MessageBox_Error(TEXT("Error in UpdateWindow"));
+        return;
+    }
 }
 
 MainWindow::~MainWindow()
@@ -119,11 +129,11 @@ void MainWindow::MessageBox_Error(const TCHAR *errStr)
     (void)::MessageBox(nullptr, errStr, MainWindowName, MB_ICONERROR);
 }
 
-void MainWindow::Create(HINSTANCE hInstance)
+void MainWindow::Create(HINSTANCE hInstance, int iCmdShow)
 {
     if (nullptr == Inst)
     {
-        Inst = new MainWindow { hInstance };
+        Inst = new MainWindow { hInstance, iCmdShow };
     }
 }
 

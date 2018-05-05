@@ -9,6 +9,9 @@ class MainWindow
         MainWindow();
         ~MainWindow();
 
+    public:
+        static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
+
     private:
 
     public:

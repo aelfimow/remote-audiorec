@@ -21,17 +21,18 @@ MainWindow *MainWindow::Inst = nullptr;
 
 
 MainWindow::MainWindow() :
-    m_WndProcMap { },
-    m_WMUserStartHandler { new WMUserStartHandler }
+    m_WndProcMap { }
 {
+    WMUserStartHandler *pUserStartHandler = new WMUserStartHandler;
+
     m_WndProcMap[WM_CREATE]     = new WMCreateHandler;
     m_WndProcMap[WM_SETFOCUS]   = new WMSetFocusHandler;
     m_WndProcMap[WM_SIZE]       = new WMSizeHandler;
-    m_WndProcMap[WM_USER_START] = m_WMUserStartHandler;
+    m_WndProcMap[WM_USER_START] = pUserStartHandler;
     m_WndProcMap[WM_USER_STOP]  = new WMUserStopHandler;
-    m_WndProcMap[MM_WIM_OPEN]   = new MMWimOpenHandler(*m_WMUserStartHandler);
+    m_WndProcMap[MM_WIM_OPEN]   = new MMWimOpenHandler(*pUserStartHandler);
     m_WndProcMap[MM_WIM_DATA]   = new MMWimDataHandler;
-    m_WndProcMap[MM_WIM_CLOSE]  = new MMWimCloseHandler(*m_WMUserStartHandler);
+    m_WndProcMap[MM_WIM_CLOSE]  = new MMWimCloseHandler(*pUserStartHandler);
     m_WndProcMap[WM_COMMAND]    = new WMCommandHandler;
     m_WndProcMap[WM_DESTROY]    = new WMDestroyHandler;
 }
@@ -43,7 +44,6 @@ MainWindow::~MainWindow()
         delete elem.second;
     }
 
-    delete m_WMUserStartHandler;
     delete Inst;
 }
 
@@ -57,5 +57,16 @@ void MainWindow::Create()
 
 LRESULT CALLBACK MainWindow::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    return ::DefWindowProc(hwnd, message, wParam, lParam);
+    auto it = Inst->m_WndProcMap.find(message);
+
+    if (it == Inst->m_WndProcMap.end())
+    {
+        return ::DefWindowProc(hwnd, message, wParam, lParam);
+    }
+
+    WndProcHandler &handler { *it->second };
+
+    auto result = handler(hwnd, wParam, lParam);
+
+    return result;
 }

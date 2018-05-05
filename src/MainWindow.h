@@ -4,7 +4,6 @@
 #define MAIN_WINDOW_H
 
 class WndProcHandler;
-class WMUserStartHandler;
 
 class MainWindow
 {
@@ -20,7 +19,6 @@ class MainWindow
         static MainWindow *Inst;
 
         std::map<UINT, WndProcHandler*> m_WndProcMap;
-        WMUserStartHandler * const m_WMUserStartHandler;
 
     public:
         MainWindow(const MainWindow &instance) = delete;

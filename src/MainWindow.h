@@ -12,6 +12,7 @@ class MainWindow
 
     public:
         static void Create(HINSTANCE hInstance, int iCmdShow);
+        static void MessageLoop();
         static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
     private:

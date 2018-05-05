@@ -137,6 +137,25 @@ void MainWindow::Create(HINSTANCE hInstance, int iCmdShow)
     }
 }
 
+void MainWindow::MessageLoop()
+{
+    MSG msg;
+    auto msgres = ::GetMessage(&msg, nullptr, 0, 0);
+
+    while ((msgres != 0) && (msgres != -1))
+    {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+
+        msgres = ::GetMessage(&msg, nullptr, 0, 0);
+    }
+
+    if (msgres == -1)
+    {
+        Inst->MessageBox_Error(TEXT("Error in GetMessage"));
+    }
+}
+
 LRESULT CALLBACK MainWindow::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     auto it = Inst->m_WndProcMap.find(message);

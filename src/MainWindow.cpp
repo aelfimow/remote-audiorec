@@ -19,9 +19,12 @@
 
 MainWindow *MainWindow::Inst = nullptr;
 
+const TCHAR MainWindow::MainWindowName[] = TEXT("remote-audiorec");
 
-MainWindow::MainWindow() :
-    m_WndProcMap { }
+
+MainWindow::MainWindow(HINSTANCE hInstance) :
+    m_WndProcMap { },
+    m_Wndclass { }
 {
     WMUserStartHandler *pUserStartHandler = new WMUserStartHandler;
 
@@ -35,6 +38,25 @@ MainWindow::MainWindow() :
     m_WndProcMap[MM_WIM_CLOSE]  = new MMWimCloseHandler(*pUserStartHandler);
     m_WndProcMap[WM_COMMAND]    = new WMCommandHandler;
     m_WndProcMap[WM_DESTROY]    = new WMDestroyHandler;
+
+    m_Wndclass.style         = (CS_HREDRAW | CS_VREDRAW);
+    m_Wndclass.lpfnWndProc   = WndProc;
+    m_Wndclass.cbClsExtra    = 0;
+    m_Wndclass.cbWndExtra    = 0;
+    m_Wndclass.hInstance     = hInstance;
+    m_Wndclass.hIcon         = LoadIcon(nullptr, IDI_APPLICATION);
+    m_Wndclass.hCursor       = LoadCursor(nullptr, IDC_ARROW);
+    m_Wndclass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
+    m_Wndclass.lpszMenuName  = nullptr;
+    m_Wndclass.lpszClassName = MainWindowName;
+
+    auto RegisterClassResult = ::RegisterClass(&m_Wndclass);
+
+    if (0 == RegisterClassResult)
+    {
+        (void)::MessageBox(NULL, TEXT("Error in RegisterClass."), MainWindowName, MB_ICONERROR);
+        return;
+    }
 }
 
 MainWindow::~MainWindow()
@@ -47,11 +69,11 @@ MainWindow::~MainWindow()
     delete Inst;
 }
 
-void MainWindow::Create()
+void MainWindow::Create(HINSTANCE hInstance)
 {
     if (nullptr == Inst)
     {
-        Inst = new MainWindow;
+        Inst = new MainWindow { hInstance };
     }
 }
 

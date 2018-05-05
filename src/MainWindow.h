@@ -11,16 +11,20 @@ class MainWindow
         ~MainWindow();
 
     public:
-        static void Create();
+        static void Create(HINSTANCE hInstance);
         static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
     private:
-        MainWindow();
+        explicit MainWindow(HINSTANCE hInstance);
+
         static MainWindow *Inst;
+        static const TCHAR MainWindowName[];
 
         std::map<UINT, WndProcHandler*> m_WndProcMap;
+        WNDCLASS m_Wndclass;
 
     public:
+        MainWindow() = delete;
         MainWindow(const MainWindow &instance) = delete;
         MainWindow(const MainWindow &&instance) = delete;
         MainWindow &operator=(const MainWindow &instance) = delete;

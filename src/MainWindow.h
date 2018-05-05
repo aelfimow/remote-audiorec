@@ -17,6 +17,7 @@ class MainWindow
     private:
         explicit MainWindow(HINSTANCE hInstance);
 
+        HMENU CreateCustomMenu();
         void MessageBox_Error(const TCHAR *errStr);
 
         static MainWindow *Inst;
@@ -24,6 +25,7 @@ class MainWindow
 
         std::map<UINT, WndProcHandler*> m_WndProcMap;
         WNDCLASS m_Wndclass;
+        HWND m_hWindow;
 
     public:
         MainWindow() = delete;

@@ -24,7 +24,8 @@ const TCHAR MainWindow::MainWindowName[] = TEXT("remote-audiorec");
 
 MainWindow::MainWindow(HINSTANCE hInstance) :
     m_WndProcMap { },
-    m_Wndclass { }
+    m_Wndclass { },
+    m_hWindow { nullptr }
 {
     WMUserStartHandler *pUserStartHandler = new WMUserStartHandler;
 
@@ -57,6 +58,25 @@ MainWindow::MainWindow(HINSTANCE hInstance) :
         MessageBox_Error(TEXT("Error in RegisterClass"));
         return;
     }
+
+    m_hWindow = ::CreateWindow(
+            MainWindowName,
+            MainWindowName,
+            WS_OVERLAPPEDWINDOW,
+            CW_USEDEFAULT,
+            CW_USEDEFAULT,
+            CW_USEDEFAULT,
+            CW_USEDEFAULT,
+            nullptr,
+            CreateCustomMenu(),
+            hInstance,
+            nullptr);
+
+    if (m_hWindow == nullptr)
+    {
+        MessageBox_Error(TEXT("Error in CreateWindow"));
+        return;
+    }
 }
 
 MainWindow::~MainWindow()
@@ -67,6 +87,31 @@ MainWindow::~MainWindow()
     }
 
     delete Inst;
+}
+
+HMENU MainWindow::CreateCustomMenu()
+{
+    auto hFileMenu = CreateMenu();
+    {
+        (void)AppendMenu(hFileMenu, MF_STRING, IDM_APP_START, TEXT("Start"));
+        (void)AppendMenu(hFileMenu, MF_STRING, IDM_APP_STOP, TEXT("Stop"));
+        (void)AppendMenu(hFileMenu, MF_SEPARATOR, 0, nullptr);
+        (void)AppendMenu(hFileMenu, MF_STRING, IDM_APP_EXIT, TEXT("&Exit"));
+    }
+
+    auto hThreadMenu = CreateMenu();
+    {
+        (void)AppendMenu(hThreadMenu, MF_STRING, IDM_APP_START_SOCKET_THREAD, TEXT("Start"));
+        (void)AppendMenu(hThreadMenu, MF_STRING, IDM_APP_STOP_SOCKET_THREAD, TEXT("Stop"));
+    }
+
+    auto hMenu = CreateMenu();
+    {
+        (void)AppendMenu(hMenu, MF_POPUP, (UINT_PTR)hFileMenu, TEXT("&File"));
+        (void)AppendMenu(hMenu, MF_POPUP, (UINT_PTR)hThreadMenu, TEXT("&Socket Thread"));
+    }
+
+    return hMenu;
 }
 
 void MainWindow::MessageBox_Error(const TCHAR *errStr)

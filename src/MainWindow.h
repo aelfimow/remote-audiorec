@@ -17,6 +17,8 @@ class MainWindow
     private:
         explicit MainWindow(HINSTANCE hInstance);
 
+        void MessageBox_Error(const TCHAR *errStr);
+
         static MainWindow *Inst;
         static const TCHAR MainWindowName[];
 

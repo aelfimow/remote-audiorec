@@ -54,7 +54,7 @@ MainWindow::MainWindow(HINSTANCE hInstance) :
 
     if (0 == RegisterClassResult)
     {
-        (void)::MessageBox(NULL, TEXT("Error in RegisterClass."), MainWindowName, MB_ICONERROR);
+        MessageBox_Error(TEXT("Error in RegisterClass"));
         return;
     }
 }
@@ -67,6 +67,11 @@ MainWindow::~MainWindow()
     }
 
     delete Inst;
+}
+
+void MainWindow::MessageBox_Error(const TCHAR *errStr)
+{
+    (void)::MessageBox(nullptr, errStr, MainWindowName, MB_ICONERROR);
 }
 
 void MainWindow::Create(HINSTANCE hInstance)

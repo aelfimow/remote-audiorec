@@ -37,8 +37,6 @@ MainWindow::~MainWindow()
     {
         delete elem.second;
     }
-
-    delete Inst;
 }
 
 HMENU MainWindow::MainWindowMenu()
@@ -160,6 +158,12 @@ void MainWindow::Run()
     {
         MessageBox_Error(TEXT("Error in GetMessage"));
     }
+}
+
+void MainWindow::Destroy()
+{
+    delete Inst;
+    Inst = nullptr;
 }
 
 LRESULT CALLBACK MainWindow::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)

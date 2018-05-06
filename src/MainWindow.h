@@ -14,6 +14,7 @@ class MainWindow
         static void Create(HINSTANCE hInstance, int iCmdShow);
         static void Show();
         static void Run();
+        static void Destroy();
         static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
     private:

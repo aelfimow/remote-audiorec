@@ -23,70 +23,12 @@ const TCHAR MainWindow::MainWindowName[] = TEXT("remote-audiorec");
 
 
 MainWindow::MainWindow(HINSTANCE hInstance, int iCmdShow) :
+    m_hInstance { hInstance },
+    m_CmdShow { iCmdShow },
     m_WndProcMap { },
     m_Wndclass { },
     m_hWindow { nullptr }
 {
-    WMUserStartHandler *pUserStartHandler = new WMUserStartHandler;
-
-    m_WndProcMap[WM_CREATE]     = new WMCreateHandler;
-    m_WndProcMap[WM_SETFOCUS]   = new WMSetFocusHandler;
-    m_WndProcMap[WM_SIZE]       = new WMSizeHandler;
-    m_WndProcMap[WM_USER_START] = pUserStartHandler;
-    m_WndProcMap[WM_USER_STOP]  = new WMUserStopHandler;
-    m_WndProcMap[MM_WIM_OPEN]   = new MMWimOpenHandler(*pUserStartHandler);
-    m_WndProcMap[MM_WIM_DATA]   = new MMWimDataHandler;
-    m_WndProcMap[MM_WIM_CLOSE]  = new MMWimCloseHandler(*pUserStartHandler);
-    m_WndProcMap[WM_COMMAND]    = new WMCommandHandler;
-    m_WndProcMap[WM_DESTROY]    = new WMDestroyHandler;
-
-    m_Wndclass.style         = (CS_HREDRAW | CS_VREDRAW);
-    m_Wndclass.lpfnWndProc   = WndProc;
-    m_Wndclass.cbClsExtra    = 0;
-    m_Wndclass.cbWndExtra    = 0;
-    m_Wndclass.hInstance     = hInstance;
-    m_Wndclass.hIcon         = LoadIcon(nullptr, IDI_APPLICATION);
-    m_Wndclass.hCursor       = LoadCursor(nullptr, IDC_ARROW);
-    m_Wndclass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
-    m_Wndclass.lpszMenuName  = nullptr;
-    m_Wndclass.lpszClassName = MainWindowName;
-
-    auto RegisterClassResult = ::RegisterClass(&m_Wndclass);
-
-    if (0 == RegisterClassResult)
-    {
-        MessageBox_Error(TEXT("Error in RegisterClass"));
-        return;
-    }
-
-    m_hWindow = ::CreateWindow(
-            MainWindowName,
-            MainWindowName,
-            WS_OVERLAPPEDWINDOW,
-            CW_USEDEFAULT,
-            CW_USEDEFAULT,
-            CW_USEDEFAULT,
-            CW_USEDEFAULT,
-            nullptr,
-            CreateCustomMenu(),
-            hInstance,
-            nullptr);
-
-    if (m_hWindow == nullptr)
-    {
-        MessageBox_Error(TEXT("Error in CreateWindow"));
-        return;
-    }
-
-    ShowWindow(m_hWindow, iCmdShow);
-
-    auto UpdateWindowResult = ::UpdateWindow(m_hWindow);
-
-    if (UpdateWindowResult == FALSE)
-    {
-        MessageBox_Error(TEXT("Error in UpdateWindow"));
-        return;
-    }
 }
 
 MainWindow::~MainWindow()
@@ -99,7 +41,7 @@ MainWindow::~MainWindow()
     delete Inst;
 }
 
-HMENU MainWindow::CreateCustomMenu()
+HMENU MainWindow::MainWindowMenu()
 {
     auto hFileMenu = CreateMenu();
     {
@@ -137,7 +79,71 @@ void MainWindow::Create(HINSTANCE hInstance, int iCmdShow)
     }
 }
 
-void MainWindow::MessageLoop()
+void MainWindow::Show()
+{
+    WMUserStartHandler *pUserStartHandler = new WMUserStartHandler;
+
+    Inst->m_WndProcMap[WM_CREATE]     = new WMCreateHandler;
+    Inst->m_WndProcMap[WM_SETFOCUS]   = new WMSetFocusHandler;
+    Inst->m_WndProcMap[WM_SIZE]       = new WMSizeHandler;
+    Inst->m_WndProcMap[WM_USER_START] = pUserStartHandler;
+    Inst->m_WndProcMap[WM_USER_STOP]  = new WMUserStopHandler;
+    Inst->m_WndProcMap[MM_WIM_OPEN]   = new MMWimOpenHandler(*pUserStartHandler);
+    Inst->m_WndProcMap[MM_WIM_DATA]   = new MMWimDataHandler;
+    Inst->m_WndProcMap[MM_WIM_CLOSE]  = new MMWimCloseHandler(*pUserStartHandler);
+    Inst->m_WndProcMap[WM_COMMAND]    = new WMCommandHandler;
+    Inst->m_WndProcMap[WM_DESTROY]    = new WMDestroyHandler;
+
+    Inst->m_Wndclass.style         = (CS_HREDRAW | CS_VREDRAW);
+    Inst->m_Wndclass.lpfnWndProc   = WndProc;
+    Inst->m_Wndclass.cbClsExtra    = 0;
+    Inst->m_Wndclass.cbWndExtra    = 0;
+    Inst->m_Wndclass.hInstance     = Inst->m_hInstance;
+    Inst->m_Wndclass.hIcon         = LoadIcon(nullptr, IDI_APPLICATION);
+    Inst->m_Wndclass.hCursor       = LoadCursor(nullptr, IDC_ARROW);
+    Inst->m_Wndclass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
+    Inst->m_Wndclass.lpszMenuName  = nullptr;
+    Inst->m_Wndclass.lpszClassName = MainWindowName;
+
+    auto RegisterClassResult = ::RegisterClass(&Inst->m_Wndclass);
+
+    if (0 == RegisterClassResult)
+    {
+        MessageBox_Error(TEXT("Error in RegisterClass"));
+        return;
+    }
+
+    Inst->m_hWindow = ::CreateWindow(
+            MainWindowName,
+            MainWindowName,
+            WS_OVERLAPPEDWINDOW,
+            CW_USEDEFAULT,
+            CW_USEDEFAULT,
+            CW_USEDEFAULT,
+            CW_USEDEFAULT,
+            nullptr,
+            MainWindowMenu(),
+            Inst->m_hInstance,
+            nullptr);
+
+    if (Inst->m_hWindow == nullptr)
+    {
+        MessageBox_Error(TEXT("Error in CreateWindow"));
+        return;
+    }
+
+    ShowWindow(Inst->m_hWindow, Inst->m_CmdShow);
+
+    auto UpdateWindowResult = ::UpdateWindow(Inst->m_hWindow);
+
+    if (UpdateWindowResult == FALSE)
+    {
+        MessageBox_Error(TEXT("Error in UpdateWindow"));
+        return;
+    }
+}
+
+void MainWindow::Run()
 {
     MSG msg;
     auto msgres = ::GetMessage(&msg, nullptr, 0, 0);

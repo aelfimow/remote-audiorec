@@ -12,18 +12,21 @@ class MainWindow
 
     public:
         static void Create(HINSTANCE hInstance, int iCmdShow);
-        static void MessageLoop();
+        static void Show();
+        static void Run();
         static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
     private:
         explicit MainWindow(HINSTANCE hInstance, int iCmdShow);
 
-        HMENU CreateCustomMenu();
-        void MessageBox_Error(const TCHAR *errStr);
-
         static MainWindow *Inst;
         static const TCHAR MainWindowName[];
 
+        static HMENU MainWindowMenu();
+        static void MessageBox_Error(const TCHAR *errStr);
+
+        const HINSTANCE m_hInstance;
+        const int m_CmdShow;
         std::map<UINT, WndProcHandler*> m_WndProcMap;
         WNDCLASS m_Wndclass;
         HWND m_hWindow;

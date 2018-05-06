@@ -158,7 +158,7 @@ void MainWindow::Run()
 
     if (msgres == -1)
     {
-        Inst->MessageBox_Error(TEXT("Error in GetMessage"));
+        MessageBox_Error(TEXT("Error in GetMessage"));
     }
 }
 

@@ -3,19 +3,19 @@
 #else
 #define WM_DESTROY_HANDLER_H
 
-class WMDestroyHandler: public WndProcHandler
+class WM_DESTROY_Handler: public WndProcHandler
 {
     public:
-        WMDestroyHandler();
-        ~WMDestroyHandler();
+        WM_DESTROY_Handler();
+        ~WM_DESTROY_Handler();
 
         LRESULT operator()(HWND hwnd, WPARAM wParam, LPARAM lParam) override;
 
     public:
-        WMDestroyHandler(const WMDestroyHandler &instance) = delete;
-        WMDestroyHandler(const WMDestroyHandler &&instance) = delete;
-        WMDestroyHandler &operator=(const WMDestroyHandler &instance) = delete;
-        WMDestroyHandler &operator=(const WMDestroyHandler &&instance) = delete;
+        WM_DESTROY_Handler(const WM_DESTROY_Handler &instance) = delete;
+        WM_DESTROY_Handler(const WM_DESTROY_Handler &&instance) = delete;
+        WM_DESTROY_Handler &operator=(const WM_DESTROY_Handler &instance) = delete;
+        WM_DESTROY_Handler &operator=(const WM_DESTROY_Handler &&instance) = delete;
 };
 
 #endif

@@ -6,21 +6,17 @@
 #include "Console.h"
 
 
-WMSetFocusHandler::WMSetFocusHandler() :
+WM_SETFOCUS_Handler::WM_SETFOCUS_Handler() :
     WndProcHandler {}
 {
 }
 
-WMSetFocusHandler::~WMSetFocusHandler()
+WM_SETFOCUS_Handler::~WM_SETFOCUS_Handler()
 {
 }
 
-LRESULT WMSetFocusHandler::operator()(HWND hwnd, WPARAM wParam, LPARAM lParam)
+LRESULT WM_SETFOCUS_Handler::operator()([[maybe_unused]] HWND hwnd, [[maybe_unused]] WPARAM wParam, [[maybe_unused]] LPARAM lParam)
 {
-    hwnd = hwnd;
-    wParam = wParam;
-    lParam = lParam;
-
     if (console != nullptr)
     {
         console->SetFocus();

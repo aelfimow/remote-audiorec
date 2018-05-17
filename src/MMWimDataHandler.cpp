@@ -6,20 +6,17 @@
 #include "Console.h"
 
 
-MMWimDataHandler::MMWimDataHandler() :
+MM_WIM_DATA_Handler::MM_WIM_DATA_Handler() :
     WndProcHandler {}
 {
 }
 
-MMWimDataHandler::~MMWimDataHandler()
+MM_WIM_DATA_Handler::~MM_WIM_DATA_Handler()
 {
 }
 
-LRESULT MMWimDataHandler::operator()(HWND hwnd, WPARAM wParam, LPARAM lParam)
+LRESULT MM_WIM_DATA_Handler::operator()([[maybe_unused]] HWND hwnd, [[maybe_unused]] WPARAM wParam, LPARAM lParam)
 {
-    hwnd = hwnd;
-    wParam = wParam;
-
     PWAVEHDR pWaveHdr = (PWAVEHDR)lParam;
 
     if (NULL == pWaveHdr)

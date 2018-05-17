@@ -3,25 +3,25 @@
 #else
 #define MM_WIM_CLOSE_HANDLER_H
 
-class WMUserStartHandler;
+class WM_USER_START_Handler;
 
-class MMWimCloseHandler: public WndProcHandler
+class MM_WIM_CLOSE_Handler: public WndProcHandler
 {
     public:
-        MMWimCloseHandler(WMUserStartHandler &userStartHandler);
-        ~MMWimCloseHandler();
+        MM_WIM_CLOSE_Handler(WM_USER_START_Handler &userStartHandler);
+        ~MM_WIM_CLOSE_Handler();
 
         LRESULT operator()(HWND hwnd, WPARAM wParam, LPARAM lParam) override;
 
     private:
-        WMUserStartHandler &m_UserStartHandler;
+        WM_USER_START_Handler &m_UserStartHandler;
 
     public:
-        MMWimCloseHandler() = delete;
-        MMWimCloseHandler(const MMWimCloseHandler &instance) = delete;
-        MMWimCloseHandler(const MMWimCloseHandler &&instance) = delete;
-        MMWimCloseHandler &operator=(const MMWimCloseHandler &instance) = delete;
-        MMWimCloseHandler &operator=(const MMWimCloseHandler &&instance) = delete;
+        MM_WIM_CLOSE_Handler() = delete;
+        MM_WIM_CLOSE_Handler(const MM_WIM_CLOSE_Handler &instance) = delete;
+        MM_WIM_CLOSE_Handler(const MM_WIM_CLOSE_Handler &&instance) = delete;
+        MM_WIM_CLOSE_Handler &operator=(const MM_WIM_CLOSE_Handler &instance) = delete;
+        MM_WIM_CLOSE_Handler &operator=(const MM_WIM_CLOSE_Handler &&instance) = delete;
 };
 
 #endif

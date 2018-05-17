@@ -7,7 +7,7 @@
 #include "Console.h"
 
 
-WMUserStartHandler::WMUserStartHandler() :
+WM_USER_START_Handler::WM_USER_START_Handler() :
     WndProcHandler {},
     buffer1(INP_BUFFER_SIZE),
     buffer2(INP_BUFFER_SIZE),
@@ -16,15 +16,12 @@ WMUserStartHandler::WMUserStartHandler() :
 {
 }
 
-WMUserStartHandler::~WMUserStartHandler()
+WM_USER_START_Handler::~WM_USER_START_Handler()
 {
 }
 
-LRESULT WMUserStartHandler::operator()(HWND hwnd, WPARAM wParam, LPARAM lParam)
+LRESULT WM_USER_START_Handler::operator()(HWND hwnd, [[maybe_unused]] WPARAM wParam, [[maybe_unused]] LPARAM lParam)
 {
-    wParam = wParam;
-    lParam = lParam;
-
     *console << TEXT("Command: Start") << Console::eol;
 
     G.bStopRecord = FALSE;
@@ -99,13 +96,13 @@ LRESULT WMUserStartHandler::operator()(HWND hwnd, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
-void WMUserStartHandler::addAudioBuffer()
+void WM_USER_START_Handler::addAudioBuffer()
 {
     waveInAddBuffer(G.hWaveIn, &WaveHdr1, sizeof(WAVEHDR));
     waveInAddBuffer(G.hWaveIn, &WaveHdr2, sizeof(WAVEHDR));
 }
 
-void WMUserStartHandler::removeAudioBuffer()
+void WM_USER_START_Handler::removeAudioBuffer()
 {
     waveInUnprepareHeader(G.hWaveIn, &WaveHdr1, sizeof(WAVEHDR));
     waveInUnprepareHeader(G.hWaveIn, &WaveHdr2, sizeof(WAVEHDR));

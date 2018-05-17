@@ -3,19 +3,19 @@
 #else
 #define WM_USER_STOP_HANDLER_H
 
-class WMUserStopHandler: public WndProcHandler
+class WM_USER_STOP_Handler: public WndProcHandler
 {
     public:
-        WMUserStopHandler();
-        ~WMUserStopHandler();
+        WM_USER_STOP_Handler();
+        ~WM_USER_STOP_Handler();
 
         LRESULT operator()(HWND hwnd, WPARAM wParam, LPARAM lParam) override;
 
     public:
-        WMUserStopHandler(const WMUserStopHandler &instance) = delete;
-        WMUserStopHandler(const WMUserStopHandler &&instance) = delete;
-        WMUserStopHandler &operator=(const WMUserStopHandler &instance) = delete;
-        WMUserStopHandler &operator=(const WMUserStopHandler &&instance) = delete;
+        WM_USER_STOP_Handler(const WM_USER_STOP_Handler &instance) = delete;
+        WM_USER_STOP_Handler(const WM_USER_STOP_Handler &&instance) = delete;
+        WM_USER_STOP_Handler &operator=(const WM_USER_STOP_Handler &instance) = delete;
+        WM_USER_STOP_Handler &operator=(const WM_USER_STOP_Handler &&instance) = delete;
 };
 
 #endif

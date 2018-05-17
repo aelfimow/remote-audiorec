@@ -79,18 +79,18 @@ void MainWindow::Create(HINSTANCE hInstance, int iCmdShow)
 
 void MainWindow::Show()
 {
-    WMUserStartHandler *pUserStartHandler = new WMUserStartHandler;
+    WM_USER_START_Handler *pUserStartHandler = new WM_USER_START_Handler;
 
-    Inst->m_WndProcMap[WM_CREATE]     = new WMCreateHandler;
-    Inst->m_WndProcMap[WM_SETFOCUS]   = new WMSetFocusHandler;
-    Inst->m_WndProcMap[WM_SIZE]       = new WMSizeHandler;
+    Inst->m_WndProcMap[WM_CREATE]     = new WM_CREATE_Handler;
+    Inst->m_WndProcMap[WM_SETFOCUS]   = new WM_SETFOCUS_Handler;
+    Inst->m_WndProcMap[WM_SIZE]       = new WM_SIZE_Handler;
     Inst->m_WndProcMap[WM_USER_START] = pUserStartHandler;
-    Inst->m_WndProcMap[WM_USER_STOP]  = new WMUserStopHandler;
-    Inst->m_WndProcMap[MM_WIM_OPEN]   = new MMWimOpenHandler(*pUserStartHandler);
-    Inst->m_WndProcMap[MM_WIM_DATA]   = new MMWimDataHandler;
-    Inst->m_WndProcMap[MM_WIM_CLOSE]  = new MMWimCloseHandler(*pUserStartHandler);
-    Inst->m_WndProcMap[WM_COMMAND]    = new WMCommandHandler;
-    Inst->m_WndProcMap[WM_DESTROY]    = new WMDestroyHandler;
+    Inst->m_WndProcMap[WM_USER_STOP]  = new WM_USER_STOP_Handler;
+    Inst->m_WndProcMap[MM_WIM_OPEN]   = new MM_WIM_OPEN_Handler(*pUserStartHandler);
+    Inst->m_WndProcMap[MM_WIM_DATA]   = new MM_WIM_DATA_Handler;
+    Inst->m_WndProcMap[MM_WIM_CLOSE]  = new MM_WIM_CLOSE_Handler(*pUserStartHandler);
+    Inst->m_WndProcMap[WM_COMMAND]    = new WM_COMMAND_Handler;
+    Inst->m_WndProcMap[WM_DESTROY]    = new WM_DESTROY_Handler;
 
     Inst->m_Wndclass.style         = (CS_HREDRAW | CS_VREDRAW);
     Inst->m_Wndclass.lpfnWndProc   = WndProc;

@@ -6,20 +6,17 @@
 #include "Console.h"
 
 
-WMSizeHandler::WMSizeHandler() :
+WM_SIZE_Handler::WM_SIZE_Handler() :
     WndProcHandler {}
 {
 }
 
-WMSizeHandler::~WMSizeHandler()
+WM_SIZE_Handler::~WM_SIZE_Handler()
 {
 }
 
-LRESULT WMSizeHandler::operator()(HWND hwnd, WPARAM wParam, LPARAM lParam)
+LRESULT WM_SIZE_Handler::operator()([[maybe_unused]] HWND hwnd, [[maybe_unused]] WPARAM wParam, LPARAM lParam)
 {
-    hwnd = hwnd;
-    wParam = wParam;
-
     if (console != nullptr)
     {
         console->MoveWindow(0, 0, LOWORD(lParam), HIWORD(lParam));

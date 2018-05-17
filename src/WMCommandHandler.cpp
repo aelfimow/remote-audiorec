@@ -6,19 +6,17 @@
 #include "Console.h"
 
 
-WMCommandHandler::WMCommandHandler() :
+WM_COMMAND_Handler::WM_COMMAND_Handler() :
     WndProcHandler {}
 {
 }
 
-WMCommandHandler::~WMCommandHandler()
+WM_COMMAND_Handler::~WM_COMMAND_Handler()
 {
 }
 
-LRESULT WMCommandHandler::operator()(HWND hwnd, WPARAM wParam, LPARAM lParam)
+LRESULT WM_COMMAND_Handler::operator()(HWND hwnd, WPARAM wParam, [[maybe_unused]] LPARAM lParam)
 {
-    lParam = lParam;
-
     auto cmd = LOWORD(wParam);
 
     if (IDM_APP_START == cmd)

@@ -8,22 +8,18 @@
 #include "Console.h"
 
 
-MMWimOpenHandler::MMWimOpenHandler(WMUserStartHandler &userStartHandler) :
+MM_WIM_OPEN_Handler::MM_WIM_OPEN_Handler(WM_USER_START_Handler &userStartHandler) :
     WndProcHandler {},
     m_UserStartHandler { userStartHandler }
 {
 }
 
-MMWimOpenHandler::~MMWimOpenHandler()
+MM_WIM_OPEN_Handler::~MM_WIM_OPEN_Handler()
 {
 }
 
-LRESULT MMWimOpenHandler::operator()(HWND hwnd, WPARAM wParam, LPARAM lParam)
+LRESULT MM_WIM_OPEN_Handler::operator()([[maybe_unused]] HWND hwnd, [[maybe_unused]] WPARAM wParam, [[maybe_unused]] LPARAM lParam)
 {
-    hwnd = hwnd;
-    wParam = wParam;
-    lParam = lParam;
-
     m_UserStartHandler.addAudioBuffer();
 
     waveInStart(G.hWaveIn);

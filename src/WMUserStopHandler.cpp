@@ -6,21 +6,17 @@
 #include "Console.h"
 
 
-WMUserStopHandler::WMUserStopHandler() :
+WM_USER_STOP_Handler::WM_USER_STOP_Handler() :
     WndProcHandler {}
 {
 }
 
-WMUserStopHandler::~WMUserStopHandler()
+WM_USER_STOP_Handler::~WM_USER_STOP_Handler()
 {
 }
 
-LRESULT WMUserStopHandler::operator()(HWND hwnd, WPARAM wParam, LPARAM lParam)
+LRESULT WM_USER_STOP_Handler::operator()([[maybe_unused]] HWND hwnd, [[maybe_unused]] WPARAM wParam, [[maybe_unused]] LPARAM lParam)
 {
-    hwnd = hwnd;
-    wParam = wParam;
-    lParam = lParam;
-
     *console << TEXT("Command: Stop") << Console::eol;
     G.bStopRecord = TRUE;
     waveInReset(G.hWaveIn);

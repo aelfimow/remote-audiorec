@@ -7,21 +7,17 @@
 #include "SocketThread.h"
 
 
-WMDestroyHandler::WMDestroyHandler() :
+WM_DESTROY_Handler::WM_DESTROY_Handler() :
     WndProcHandler {}
 {
 }
 
-WMDestroyHandler::~WMDestroyHandler()
+WM_DESTROY_Handler::~WM_DESTROY_Handler()
 {
 }
 
-LRESULT WMDestroyHandler::operator()(HWND hwnd, WPARAM wParam, LPARAM lParam)
+LRESULT WM_DESTROY_Handler::operator()([[maybe_unused]] HWND hwnd, [[maybe_unused]] WPARAM wParam, [[maybe_unused]] LPARAM lParam)
 {
-    hwnd = hwnd;
-    wParam = wParam;
-    lParam = lParam;
-
     G.bStopRecord = TRUE;
     waveInReset(G.hWaveIn);
 

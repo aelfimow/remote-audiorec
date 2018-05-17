@@ -8,22 +8,18 @@
 #include "Console.h"
 
 
-MMWimCloseHandler::MMWimCloseHandler(WMUserStartHandler &userStartHandler) :
+MM_WIM_CLOSE_Handler::MM_WIM_CLOSE_Handler(WM_USER_START_Handler &userStartHandler) :
     WndProcHandler {},
     m_UserStartHandler { userStartHandler }
 {
 }
 
-MMWimCloseHandler::~MMWimCloseHandler()
+MM_WIM_CLOSE_Handler::~MM_WIM_CLOSE_Handler()
 {
 }
 
-LRESULT MMWimCloseHandler::operator()(HWND hwnd, WPARAM wParam, LPARAM lParam)
+LRESULT MM_WIM_CLOSE_Handler::operator()([[maybe_unused]] HWND hwnd, [[maybe_unused]] WPARAM wParam, [[maybe_unused]] LPARAM lParam)
 {
-    hwnd = hwnd;
-    wParam = wParam;
-    lParam = lParam;
-
     m_UserStartHandler.removeAudioBuffer();
 
     *console << TEXT("Audio input closed") << Console::eol;

@@ -8,19 +8,17 @@
 #include "Console.h"
 
 
-WMCreateHandler::WMCreateHandler() :
+WM_CREATE_Handler::WM_CREATE_Handler() :
     WndProcHandler {}
 {
 }
 
-WMCreateHandler::~WMCreateHandler()
+WM_CREATE_Handler::~WM_CREATE_Handler()
 {
 }
 
-LRESULT WMCreateHandler::operator()(HWND hwnd, WPARAM wParam, LPARAM lParam)
+LRESULT WM_CREATE_Handler::operator()(HWND hwnd, [[maybe_unused]] WPARAM wParam, LPARAM lParam)
 {
-    wParam = wParam;
-
     console = new Console(hwnd, ((LPCREATESTRUCT)lParam)->hInstance);
 
     if (console->is_error())

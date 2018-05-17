@@ -3,19 +3,19 @@
 #else
 #define WM_COMMAND_HANDLER_H
 
-class WMCommandHandler: public WndProcHandler
+class WM_COMMAND_Handler: public WndProcHandler
 {
     public:
-        WMCommandHandler();
-        ~WMCommandHandler();
+        WM_COMMAND_Handler();
+        ~WM_COMMAND_Handler();
 
         LRESULT operator()(HWND hwnd, WPARAM wParam, LPARAM lParam) override;
 
     public:
-        WMCommandHandler(const WMCommandHandler &instance) = delete;
-        WMCommandHandler(const WMCommandHandler &&instance) = delete;
-        WMCommandHandler &operator=(const WMCommandHandler &instance) = delete;
-        WMCommandHandler &operator=(const WMCommandHandler &&instance) = delete;
+        WM_COMMAND_Handler(const WM_COMMAND_Handler &instance) = delete;
+        WM_COMMAND_Handler(const WM_COMMAND_Handler &&instance) = delete;
+        WM_COMMAND_Handler &operator=(const WM_COMMAND_Handler &instance) = delete;
+        WM_COMMAND_Handler &operator=(const WM_COMMAND_Handler &&instance) = delete;
 };
 
 #endif

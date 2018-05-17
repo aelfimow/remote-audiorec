@@ -3,19 +3,19 @@
 #else
 #define WM_SETFOCUS_HANDLER_H
 
-class WMSetFocusHandler: public WndProcHandler
+class WM_SETFOCUS_Handler: public WndProcHandler
 {
     public:
-        WMSetFocusHandler();
-        ~WMSetFocusHandler();
+        WM_SETFOCUS_Handler();
+        ~WM_SETFOCUS_Handler();
 
         LRESULT operator()(HWND hwnd, WPARAM wParam, LPARAM lParam) override;
 
     public:
-        WMSetFocusHandler(const WMSetFocusHandler &instance) = delete;
-        WMSetFocusHandler(const WMSetFocusHandler &&instance) = delete;
-        WMSetFocusHandler &operator=(const WMSetFocusHandler &instance) = delete;
-        WMSetFocusHandler &operator=(const WMSetFocusHandler &&instance) = delete;
+        WM_SETFOCUS_Handler(const WM_SETFOCUS_Handler &instance) = delete;
+        WM_SETFOCUS_Handler(const WM_SETFOCUS_Handler &&instance) = delete;
+        WM_SETFOCUS_Handler &operator=(const WM_SETFOCUS_Handler &instance) = delete;
+        WM_SETFOCUS_Handler &operator=(const WM_SETFOCUS_Handler &&instance) = delete;
 };
 
 #endif

@@ -3,11 +3,11 @@
 #else
 #define WM_USER_START_H
 
-class WMUserStartHandler: public WndProcHandler
+class WM_USER_START_Handler: public WndProcHandler
 {
     public:
-        WMUserStartHandler();
-        ~WMUserStartHandler();
+        WM_USER_START_Handler();
+        ~WM_USER_START_Handler();
 
         LRESULT operator()(HWND hwnd, WPARAM wParam, LPARAM lParam) override;
 
@@ -21,10 +21,10 @@ class WMUserStartHandler: public WndProcHandler
         WAVEHDR WaveHdr2;
 
     public:
-        WMUserStartHandler(const WMUserStartHandler &instance) = delete;
-        WMUserStartHandler(const WMUserStartHandler &&instance) = delete;
-        WMUserStartHandler &operator=(const WMUserStartHandler &instance) = delete;
-        WMUserStartHandler &operator=(const WMUserStartHandler &&instance) = delete;
+        WM_USER_START_Handler(const WM_USER_START_Handler &instance) = delete;
+        WM_USER_START_Handler(const WM_USER_START_Handler &&instance) = delete;
+        WM_USER_START_Handler &operator=(const WM_USER_START_Handler &instance) = delete;
+        WM_USER_START_Handler &operator=(const WM_USER_START_Handler &&instance) = delete;
 };
 
 #endif

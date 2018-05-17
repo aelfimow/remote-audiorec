@@ -3,19 +3,19 @@
 #else
 #define WM_CREATE_HANDLER_H
 
-class WMCreateHandler: public WndProcHandler
+class WM_CREATE_Handler: public WndProcHandler
 {
     public:
-        WMCreateHandler();
-        ~WMCreateHandler();
+        WM_CREATE_Handler();
+        ~WM_CREATE_Handler();
 
         LRESULT operator()(HWND hwnd, WPARAM wParam, LPARAM lParam) override;
 
     public:
-        WMCreateHandler(const WMCreateHandler &instance) = delete;
-        WMCreateHandler(const WMCreateHandler &&instance) = delete;
-        WMCreateHandler &operator=(const WMCreateHandler &instance) = delete;
-        WMCreateHandler &operator=(const WMCreateHandler &&instance) = delete;
+        WM_CREATE_Handler(const WM_CREATE_Handler &instance) = delete;
+        WM_CREATE_Handler(const WM_CREATE_Handler &&instance) = delete;
+        WM_CREATE_Handler &operator=(const WM_CREATE_Handler &instance) = delete;
+        WM_CREATE_Handler &operator=(const WM_CREATE_Handler &&instance) = delete;
 };
 
 #endif

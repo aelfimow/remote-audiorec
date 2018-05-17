@@ -3,7 +3,7 @@
 
 #include "main.h"
 #include "WndProcHandler.h"
-#include "WMUserStartHandler.h"
+#include "WM_USER_START_Handler.h"
 #include "Console.h"
 
 

@@ -2,8 +2,8 @@
 #include <vector>
 
 #include "WndProcHandler.h"
-#include "WMUserStartHandler.h"
-#include "MMWimCloseHandler.h"
+#include "WM_USER_START_Handler.h"
+#include "MM_WIM_CLOSE_Handler.h"
 #include "main.h"
 #include "Console.h"
 

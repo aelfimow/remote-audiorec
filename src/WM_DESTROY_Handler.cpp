@@ -1,7 +1,7 @@
 #include <Windows.h>
 
 #include "WndProcHandler.h"
-#include "WMDestroyHandler.h"
+#include "WM_DESTROY_Handler.h"
 #include "main.h"
 #include "Console.h"
 #include "SocketThread.h"

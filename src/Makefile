@@ -34,16 +34,16 @@ OBJ_FILES += s.o
 
 all:
 	c++ -c MainWindow.cpp -o s.o ${CXXFLAGS}
-	c++ -c WMDestroyHandler.cpp -o r.o ${CXXFLAGS}
-	c++ -c WMCommandHandler.cpp -o q.o ${CXXFLAGS}
-	c++ -c MMWimCloseHandler.cpp -o p.o ${CXXFLAGS}
-	c++ -c MMWimDataHandler.cpp -o o.o ${CXXFLAGS}
-	c++ -c MMWimOpenHandler.cpp -o n.o ${CXXFLAGS}
-	c++ -c WMUserStopHandler.cpp -o m.o ${CXXFLAGS}
-	c++ -c WMUserStartHandler.cpp -o l.o ${CXXFLAGS}
-	c++ -c WMSizeHandler.cpp -o k.o ${CXXFLAGS}
-	c++ -c WMSetFocusHandler.cpp -o j.o ${CXXFLAGS}
-	c++ -c WMCreateHandler.cpp -o i.o ${CXXFLAGS}
+	c++ -c WM_DESTROY_Handler.cpp -o r.o ${CXXFLAGS}
+	c++ -c WM_COMMAND_Handler.cpp -o q.o ${CXXFLAGS}
+	c++ -c MM_WIM_CLOSE_Handler.cpp -o p.o ${CXXFLAGS}
+	c++ -c MM_WIM_DATA_Handler.cpp -o o.o ${CXXFLAGS}
+	c++ -c MM_WIM_OPEN_Handler.cpp -o n.o ${CXXFLAGS}
+	c++ -c WM_USER_STOP_Handler.cpp -o m.o ${CXXFLAGS}
+	c++ -c WM_USER_START_Handler.cpp -o l.o ${CXXFLAGS}
+	c++ -c WM_SIZE_Handler.cpp -o k.o ${CXXFLAGS}
+	c++ -c WM_SET_FOCUS_Handler.cpp -o j.o ${CXXFLAGS}
+	c++ -c WM_CREATE_Handler.cpp -o i.o ${CXXFLAGS}
 	c++ -c Console.cpp -o h.o ${CXXFLAGS}
 	c++ -c SocketScope.cpp -o g.o ${CXXFLAGS}
 	c++ -c SocketListener.cpp -o f.o ${CXXFLAGS}

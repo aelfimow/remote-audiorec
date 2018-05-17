@@ -1,7 +1,7 @@
 #include <Windows.h>
 
 #include "WndProcHandler.h"
-#include "WMSizeHandler.h"
+#include "WM_SIZE_Handler.h"
 #include "main.h"
 #include "Console.h"
 

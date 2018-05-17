@@ -1,7 +1,7 @@
 #include <Windows.h>
 
 #include "WndProcHandler.h"
-#include "WMUserStopHandler.h"
+#include "WM_USER_STOP_Handler.h"
 #include "main.h"
 #include "Console.h"
 

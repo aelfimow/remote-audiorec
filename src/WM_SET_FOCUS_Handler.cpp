@@ -1,7 +1,7 @@
 #include <Windows.h>
 
 #include "WndProcHandler.h"
-#include "WMSetFocusHandler.h"
+#include "WM_SET_FOCUS_Handler.h"
 #include "main.h"
 #include "Console.h"
 

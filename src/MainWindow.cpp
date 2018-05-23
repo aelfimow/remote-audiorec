@@ -168,16 +168,16 @@ void MainWindow::Destroy()
 
 LRESULT CALLBACK MainWindow::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    auto it = Inst->m_WndProcMap.find(message);
+    if (auto it = Inst->m_WndProcMap.find(message); it != Inst->m_WndProcMap.end())
+    {
+        WndProcHandler &handler { *it->second };
 
-    if (it == Inst->m_WndProcMap.end())
+        auto result = handler(hwnd, wParam, lParam);
+
+        return result;
+    }
+    else
     {
         return ::DefWindowProc(hwnd, message, wParam, lParam);
     }
-
-    WndProcHandler &handler { *it->second };
-
-    auto result = handler(hwnd, wParam, lParam);
-
-    return result;
 }

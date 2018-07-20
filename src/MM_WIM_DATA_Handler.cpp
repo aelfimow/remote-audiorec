@@ -1,5 +1,6 @@
 #include <Windows.h>
 
+#include "WndProcParam.h"
 #include "WndProcHandler.h"
 #include "MM_WIM_DATA_Handler.h"
 #include "main.h"
@@ -15,9 +16,9 @@ MM_WIM_DATA_Handler::~MM_WIM_DATA_Handler()
 {
 }
 
-LRESULT MM_WIM_DATA_Handler::operator()([[maybe_unused]] HWND hwnd, [[maybe_unused]] WPARAM wParam, LPARAM lParam)
+LRESULT MM_WIM_DATA_Handler::operator()(const WndProcParam &param)
 {
-    PWAVEHDR pWaveHdr = (PWAVEHDR)lParam;
+    PWAVEHDR pWaveHdr = (PWAVEHDR)param.lParam();
 
     if (NULL == pWaveHdr)
     {

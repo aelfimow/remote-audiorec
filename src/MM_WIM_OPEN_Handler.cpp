@@ -1,6 +1,7 @@
 #include <Windows.h>
 #include <vector>
 
+#include "WndProcParam.h"
 #include "WndProcHandler.h"
 #include "WM_USER_START_Handler.h"
 #include "MM_WIM_OPEN_Handler.h"
@@ -18,7 +19,7 @@ MM_WIM_OPEN_Handler::~MM_WIM_OPEN_Handler()
 {
 }
 
-LRESULT MM_WIM_OPEN_Handler::operator()([[maybe_unused]] HWND hwnd, [[maybe_unused]] WPARAM wParam, [[maybe_unused]] LPARAM lParam)
+LRESULT MM_WIM_OPEN_Handler::operator()([[maybe_unused]] const WndProcParam &param)
 {
     m_UserStartHandler.addAudioBuffer();
 

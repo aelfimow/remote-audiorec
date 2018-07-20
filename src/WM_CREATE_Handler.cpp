@@ -1,5 +1,6 @@
 #include <Windows.h>
 
+#include "WndProcParam.h"
 #include "WndProcHandler.h"
 #include "WM_CREATE_Handler.h"
 #include "main.h"
@@ -17,9 +18,9 @@ WM_CREATE_Handler::~WM_CREATE_Handler()
 {
 }
 
-LRESULT WM_CREATE_Handler::operator()(HWND hwnd, [[maybe_unused]] WPARAM wParam, LPARAM lParam)
+LRESULT WM_CREATE_Handler::operator()(const WndProcParam &param)
 {
-    console = new Console(hwnd, ((LPCREATESTRUCT)lParam)->hInstance);
+    console = new Console(param.hwnd(), ((LPCREATESTRUCT)param.lParam())->hInstance);
 
     if (console->is_error())
     {
@@ -27,7 +28,7 @@ LRESULT WM_CREATE_Handler::operator()(HWND hwnd, [[maybe_unused]] WPARAM wParam,
     }
 
     struct ThreadParams params;
-    params.hwnd = hwnd;
+    params.hwnd = param.hwnd();
     params.hwndEdit = nullptr;
     params.event = CreateEvent(NULL, FALSE, FALSE, NULL);
 

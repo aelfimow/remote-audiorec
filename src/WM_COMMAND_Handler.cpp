@@ -1,5 +1,6 @@
 #include <Windows.h>
 
+#include "WndProcParam.h"
 #include "WndProcHandler.h"
 #include "WM_COMMAND_Handler.h"
 #include "main.h"
@@ -15,21 +16,21 @@ WM_COMMAND_Handler::~WM_COMMAND_Handler()
 {
 }
 
-LRESULT WM_COMMAND_Handler::operator()(HWND hwnd, WPARAM wParam, [[maybe_unused]] LPARAM lParam)
+LRESULT WM_COMMAND_Handler::operator()(const WndProcParam &param)
 {
-    auto cmd = LOWORD(wParam);
+    auto cmd = LOWORD(param.wParam());
 
     if (IDM_APP_START == cmd)
     {
         *console << TEXT("Menu command: Start") << Console::eol;
-        PostMessage(hwnd, WM_USER_START, 0, 0);
+        PostMessage(param.hwnd(), WM_USER_START, 0, 0);
         return 0;
     }
 
     if (IDM_APP_STOP == cmd)
     {
         *console << TEXT("Menu command: Stop") << Console::eol;
-        PostMessage(hwnd, WM_USER_STOP, 0, 0);
+        PostMessage(param.hwnd(), WM_USER_STOP, 0, 0);
         return 0;
     }
 
@@ -50,7 +51,7 @@ LRESULT WM_COMMAND_Handler::operator()(HWND hwnd, WPARAM wParam, [[maybe_unused]
         *console << TEXT("Menu command: Exit") << Console::eol;
         G.bStopRecord = TRUE;
         waveInReset(G.hWaveIn);
-        PostMessage(hwnd, WM_CLOSE, 0, 0);
+        PostMessage(param.hwnd(), WM_CLOSE, 0, 0);
         return 0;
     }
 

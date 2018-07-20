@@ -2,6 +2,7 @@
 #include <vector>
 
 #include "main.h"
+#include "WndProcParam.h"
 #include "WndProcHandler.h"
 #include "WM_USER_START_Handler.h"
 #include "Console.h"
@@ -20,7 +21,7 @@ WM_USER_START_Handler::~WM_USER_START_Handler()
 {
 }
 
-LRESULT WM_USER_START_Handler::operator()(HWND hwnd, [[maybe_unused]] WPARAM wParam, [[maybe_unused]] LPARAM lParam)
+LRESULT WM_USER_START_Handler::operator()(const WndProcParam &param)
 {
     *console << TEXT("Command: Start") << Console::eol;
 
@@ -39,7 +40,7 @@ LRESULT WM_USER_START_Handler::operator()(HWND hwnd, [[maybe_unused]] WPARAM wPa
             &G.hWaveIn,
             WAVE_MAPPER,
             &G.waveform,
-            (DWORD_PTR)hwnd,
+            (DWORD_PTR)param.hwnd(),
             0,
             CALLBACK_WINDOW);
 

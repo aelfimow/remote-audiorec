@@ -3,13 +3,15 @@
 #else
 #define WM_USER_START_H
 
+class WndProcParam;
+
 class WM_USER_START_Handler: public WndProcHandler
 {
     public:
         WM_USER_START_Handler();
         ~WM_USER_START_Handler();
 
-        LRESULT operator()(HWND hwnd, WPARAM wParam, LPARAM lParam) override;
+        LRESULT operator()(const WndProcParam &param) override;
 
         void addAudioBuffer();
         void removeAudioBuffer();

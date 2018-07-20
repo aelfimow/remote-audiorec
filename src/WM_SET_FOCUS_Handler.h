@@ -3,13 +3,15 @@
 #else
 #define WM_SETFOCUS_HANDLER_H
 
+class WndProcParam;
+
 class WM_SETFOCUS_Handler: public WndProcHandler
 {
     public:
         WM_SETFOCUS_Handler();
         ~WM_SETFOCUS_Handler();
 
-        LRESULT operator()(HWND hwnd, WPARAM wParam, LPARAM lParam) override;
+        LRESULT operator()(const WndProcParam &param) override;
 
     public:
         WM_SETFOCUS_Handler(const WM_SETFOCUS_Handler &instance) = delete;

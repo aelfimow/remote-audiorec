@@ -3,13 +3,15 @@
 #else
 #define MM_WIM_DATA_HANDLER_H
 
+class WndProcParam;
+
 class MM_WIM_DATA_Handler: public WndProcHandler
 {
     public:
         MM_WIM_DATA_Handler();
         ~MM_WIM_DATA_Handler();
 
-        LRESULT operator()(HWND hwnd, WPARAM wParam, LPARAM lParam) override;
+        LRESULT operator()(const WndProcParam &param) override;
 
     public:
         MM_WIM_DATA_Handler(const MM_WIM_DATA_Handler &instance) = delete;

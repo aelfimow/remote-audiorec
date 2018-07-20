@@ -3,13 +3,15 @@
 #else
 #define WM_USER_STOP_HANDLER_H
 
+class WndProcParam;
+
 class WM_USER_STOP_Handler: public WndProcHandler
 {
     public:
         WM_USER_STOP_Handler();
         ~WM_USER_STOP_Handler();
 
-        LRESULT operator()(HWND hwnd, WPARAM wParam, LPARAM lParam) override;
+        LRESULT operator()(const WndProcParam &param) override;
 
     public:
         WM_USER_STOP_Handler(const WM_USER_STOP_Handler &instance) = delete;

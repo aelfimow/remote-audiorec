@@ -31,8 +31,10 @@ OBJ_FILES += p.o
 OBJ_FILES += q.o
 OBJ_FILES += r.o
 OBJ_FILES += s.o
+OBJ_FILES += t.o
 
 all:
+	c++ -c WndProcParam.cpp -o t.o ${CXXFLAGS}
 	c++ -c MainWindow.cpp -o s.o ${CXXFLAGS}
 	c++ -c WM_DESTROY_Handler.cpp -o r.o ${CXXFLAGS}
 	c++ -c WM_COMMAND_Handler.cpp -o q.o ${CXXFLAGS}
